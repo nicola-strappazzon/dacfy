@@ -1,0 +1,29 @@
+---
+database:
+  name: wikistat
+table:
+  name: wikistat_top_projects
+  delete: true
+  engine: SummingMergeTree
+  order_by:
+    - date
+    - project
+  columns:
+    - {name: date,    type: Date }
+    - {name: project, type: "LowCardinality(String)" }
+    - {name: hits,    type: UInt32 }
+view:
+  name: wikistat_top_projects_mv
+  delete: true
+  materialized: true
+  populate:
+    type: query
+  query: |
+    SELECT
+      date(time) AS date,
+      project,
+      sum(hits) AS hits
+    FROM wikistat
+    GROUP BY
+      date,
+      project

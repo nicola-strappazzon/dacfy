@@ -1,0 +1,23 @@
+---
+database:
+  name: download
+view:
+  name: download_daily_mv
+  delete: true
+  materialized: true
+  engine: SummingMergeTree
+  partition_by:
+    - toYYYYMM(day)
+  order_by:
+    - userid
+    - day
+  populate:
+    type: native
+  query: |
+    SELECT
+      toStartOfDay(when) AS day,
+      userid,
+      count() as downloads,
+      sum(bytes) AS bytes
+    FROM download
+    GROUP BY userid, day

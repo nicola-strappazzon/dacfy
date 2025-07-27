@@ -1,0 +1,25 @@
+---
+database:
+  name: download
+  delete: true
+table:
+  name: download
+  delete: true
+  engine: MergeTree
+  partition_by:
+    - toYYYYMM(when)
+  order_by:
+    - userid
+    - when
+  columns:
+    - {name: when,   type: DateTime }
+    - {name: userid, type: UInt32 }
+    - {name: bytes,  type: Float32 }
+  query: |
+    INSERT INTO download
+    SELECT
+      now() + number * 60 as when,
+      25,
+      rand() % 100000000
+    FROM system.numbers
+    LIMIT 5000
