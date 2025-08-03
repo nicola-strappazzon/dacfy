@@ -5,7 +5,7 @@ type PopulateType string
 const (
 	PopulateNative PopulateType = "native" // Implemented, means: CREATE MATERIALIZED VIEW ... POPULATE AS SELECT ...
 	PopulateQuery  PopulateType = "query"  // Implemented, means: INSERT ... AS SELECT ...
-	PopulateChunk  PopulateType = "chunk"  // Pending, populate via partition.
+	PopulateChunk  PopulateType = "chunk"  // Pending, populate via partition. INSERT ... AS SELECT ... WHERE (PARTITION BY)
 )
 
 type Populate struct {

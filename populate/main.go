@@ -15,8 +15,8 @@ func NewCommand() *cobra.Command {
 		Short:   "Populate tables as defined in the pipelines.",
 		Long:    ``,
 		Example: `dac populate --host=demo.clickhouse.cloud --user=default --password=mypass --pipe=foo.yaml`,
-		Run: func(cmd *cobra.Command, args []string) {
-			Run()
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return Run()
 		},
 	}
 
@@ -26,8 +26,6 @@ func NewCommand() *cobra.Command {
 	return cmd
 }
 
-func Run() {
-	if err := ch.ExecuteWitchLogger(pl.Populate().DML()); err != nil {
-		panic(err)
-	}
+func Run() error {
+	return ch.ExecuteWitchLogger(pl.Populate().DML())
 }

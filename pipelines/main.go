@@ -26,14 +26,11 @@ type Pipelines struct {
 	View      View            `yaml:"view"`
 }
 
-func (p *Pipelines) Load(in string) {
+func (p *Pipelines) Load(in string) error {
 	yamlFile, err := os.ReadFile(in)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	err = yaml.Unmarshal(yamlFile, p)
-	if err != nil {
-		panic(err)
-	}
+	return yaml.Unmarshal(yamlFile, p)
 }

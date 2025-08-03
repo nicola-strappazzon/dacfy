@@ -19,20 +19,18 @@ func NewCommand() *cobra.Command {
 		Short:   "Create tables and materialized views, and populate data as defined in the pipelines.",
 		Long:    ``,
 		Example: `dac deploy --host=demo.clickhouse.cloud --user=default --password=mypass --pipe=foo.yaml`,
-		Run: func(cmd *cobra.Command, args []string) {
-			Run()
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return Run()
 		},
 	}
 
 	cmd.Flags().StringVar(&pl.Config.Pipe, "pipe", "", "Path to the pipelines file.")
-	cmd.MarkFlagRequired("pipelines")
+	cmd.MarkFlagRequired("pipe")
 
 	return cmd
 }
 
-func Run() {
-	var err error
-
+func Run() (err error) {
 	queries := []struct {
 		Statement string
 		Logger    bool
@@ -59,7 +57,9 @@ func Run() {
 		}
 
 		if err != nil {
-			panic(err)
+			return err
 		}
 	}
+
+	return nil
 }

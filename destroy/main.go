@@ -19,8 +19,8 @@ func NewCommand() *cobra.Command {
 		Short:   "Remove tables and materialized views as defined in the pipelines.",
 		Long:    ``,
 		Example: `dac destroy --host=demo.clickhouse.cloud --user=default --password=mypass --pipe=foo.yaml`,
-		Run: func(cmd *cobra.Command, args []string) {
-			Run()
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return Run()
 		},
 	}
 
@@ -30,9 +30,7 @@ func NewCommand() *cobra.Command {
 	return cmd
 }
 
-func Run() {
-	var err error
-
+func Run() error {
 	queries := []struct {
 		Statement string
 		Delete    bool
@@ -43,7 +41,7 @@ func Run() {
 	}
 
 	for _, query := range queries {
-		if !query.Delete {
+		if query.Delete == false {
 			continue
 		}
 
@@ -53,8 +51,10 @@ func Run() {
 
 		fmt.Println("==> Query:", query.Statement)
 
-		if err = ch.Execute(query.Statement); err != nil {
-			panic(err)
+		if err := ch.Execute(query.Statement); err != nil {
+			return err
 		}
 	}
+
+	return nil
 }

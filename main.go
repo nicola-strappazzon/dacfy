@@ -1,8 +1,6 @@
 package main
 
 import (
-	// "fmt"
-
 	"github.com/nicola-strappazzon/clickhouse-dac/clickhouse"
 	"github.com/nicola-strappazzon/clickhouse-dac/deploy"
 	"github.com/nicola-strappazzon/clickhouse-dac/destroy"
@@ -21,10 +19,11 @@ var tt = terminal.Terminal{}
 
 type progressHandler struct{}
 
-func main() {
-	tt.New()
-	tt.CursorHide()
+func init() {
+	ch.SetLogger(progressHandler{})
+}
 
+func main() {
 	var rootCmd = &cobra.Command{
 		Use: "dac [COMMANDS] [OPTIONS]",
 		Long: `ClickHouse Data as Code - A simple way to use pipelines for data transformation.
@@ -40,15 +39,19 @@ Find more information at: https://github.com/nicola-strappazzon/clickhouse-dac`,
 				return
 			}
 		},
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
 			if cmd.Flags().Changed("pipe") {
-				pl.Load(pl.Config.Pipe)
-
-				if err := ch.Connect(); err != nil {
-					panic(err)
+				if err = pl.Load(pl.Config.Pipe); err != nil {
+					return err
 				}
-				ch.SetLogger(progressHandler{})
+
+				if err = pl.Database.Validate(); err != nil {
+					return err
+				}
+
+				return ch.Connect()
 			}
+			return nil
 		},
 	}
 
@@ -61,8 +64,10 @@ Find more information at: https://github.com/nicola-strappazzon/clickhouse-dac`,
 	rootCmd.AddCommand(destroy.NewCommand())
 	rootCmd.AddCommand(populate.NewCommand())
 	rootCmd.AddCommand(version.NewCommand())
-	rootCmd.Execute()
 
+	tt.New()
+	tt.CursorHide()
+	rootCmd.Execute()
 	tt.Rune('\n')
 	tt.CursorShow()
 }
