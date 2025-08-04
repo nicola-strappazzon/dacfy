@@ -8,9 +8,7 @@ table:
   engine: MergeTree
   partition_by:
     - toYYYYMM(when)
-  order_by:
-    - userid
-    - when
+  order_by: [userid, when]
   columns:
     - {name: when,   type: DateTime }
     - {name: userid, type: UInt32 }

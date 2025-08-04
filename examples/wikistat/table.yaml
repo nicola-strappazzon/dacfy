@@ -6,9 +6,7 @@ table:
   name: wikistat
   delete: true
   engine: MergeTree
-  order_by:
-    - path
-    - time
+  order_by: [path, time]
   columns:
     - {name: time,       type: "DateTime CODEC(Delta(4), ZSTD(1))" }
     - {name: project,    type: "LowCardinality(String)" }

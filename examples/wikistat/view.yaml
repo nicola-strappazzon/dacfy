@@ -5,9 +5,7 @@ table:
   name: wikistat_top_projects
   delete: true
   engine: SummingMergeTree
-  order_by:
-    - date
-    - project
+  order_by: [date, project]
   columns:
     - {name: date,    type: Date }
     - {name: project, type: "LowCardinality(String)" }

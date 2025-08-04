@@ -8,9 +8,7 @@ view:
   engine: SummingMergeTree
   partition_by:
     - toYYYYMM(day)
-  order_by:
-    - userid
-    - day
+  order_by: [userid, day]
   populate:
     type: native
   query: |
