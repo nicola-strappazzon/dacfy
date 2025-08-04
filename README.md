@@ -4,5 +4,15 @@ A simple way to use pipelines for data transformation: define your databases, ta
 
 To understand exactly what this tool does, I’ve included a series of curated [examples](https://github.com/nicola-strappazzon/cht/tree/main/examples) that have been reorganized to help you grasp how it works much more clearly.
 
+## Install using go
+
+If you have Go installed, you can install the clickhouse-dac binary like this:
+
+```bash
+go install github.com/nicola-strappazzon/clickhouse-dac@latest
+```
+
+The binary will be placed in your `GOBIN` directory, which defaults to `~/go/bin`. Depending on how Go is installed, this directory may or may not be in your `PATH`.
+
 > [!WARNING]
 > This project is under active development and may be unstable. Use at your own risk.
