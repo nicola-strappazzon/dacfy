@@ -25,7 +25,7 @@ func init() {
 
 func main() {
 	var rootCmd = &cobra.Command{
-		Use: "dac [COMMANDS] [OPTIONS]",
+		Use: "clickhouse-dac [COMMANDS] [OPTIONS]",
 		Long: `ClickHouse Data as Code - A simple way to use pipelines for data transformation.
 
   You can define your databases, tables, materialized views, and populate
@@ -46,6 +46,10 @@ Find more information at: https://github.com/nicola-strappazzon/clickhouse-dac`,
 				}
 
 				if err = pl.Database.Validate(); err != nil {
+					return err
+				}
+
+				if err = pl.Table.Validate(); err != nil {
 					return err
 				}
 

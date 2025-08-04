@@ -17,8 +17,7 @@ func NewCommand() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:     "destroy",
 		Short:   "Remove tables and materialized views as defined in the pipelines.",
-		Long:    ``,
-		Example: `dac destroy --host=demo.clickhouse.cloud --user=default --password=mypass --pipe=foo.yaml`,
+		Example: `clickhouse-dac destroy --pipe=foo.yaml`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return Run()
 		},

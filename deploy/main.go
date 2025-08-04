@@ -17,8 +17,7 @@ func NewCommand() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:     "deploy",
 		Short:   "Create tables and materialized views, and populate data as defined in the pipelines.",
-		Long:    ``,
-		Example: `dac deploy --host=demo.clickhouse.cloud --user=default --password=mypass --pipe=foo.yaml`,
+		Example: `clickhouse-dac deploy --pipe=foo.yaml`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return Run()
 		},

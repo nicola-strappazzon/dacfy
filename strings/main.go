@@ -15,3 +15,7 @@ func IsEmpty(in string) bool {
 func IsNotEmpty(in string) bool {
 	return !(strings.TrimSpace(in) == "")
 }
+
+func Contains(s, substr string) bool {
+	return strings.Contains(s, substr)
+}

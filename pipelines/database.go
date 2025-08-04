@@ -48,7 +48,7 @@ func (d Database) DML() string {
 	return d.Statement.String()
 }
 
-func (d *Database) Validate() error {
+func (d Database) Validate() error {
 	var re = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]{1,254}$`)
 
 	if d.Name == "" {
