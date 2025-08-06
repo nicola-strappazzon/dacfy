@@ -2,6 +2,7 @@ package pipelines
 
 import (
 	"fmt"
+	"reflect"
 	"regexp"
 
 	"github.com/nicola-strappazzon/clickhouse-dac/strings"
@@ -89,6 +90,10 @@ func (t Table) DML() string {
 
 func (t Table) Validate() error {
 	var re = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]{1,254}$`)
+
+	if reflect.DeepEqual(t, Table{}) {
+	    return nil
+	}
 
 	if strings.IsEmpty(t.Name) && !t.Delete {
 		return fmt.Errorf("table.name is required unless delete is true")

@@ -15,6 +15,7 @@ type View struct {
 	Populate     Populate        `yaml:"populate"`
 	Query        Query           `yaml:"query"`
 	Statement    strings.Builder `yaml:"-"`
+	To           string          `yaml:"to"`
 }
 
 func (v View) Drop() View {
@@ -101,32 +102,17 @@ func (v View) DoMaterialized() View {
 		v.Statement.WriteString(instance.Table.Name)
 	}
 
-	if strings.IsNotEmpty(instance.Table.Columns.WithTypes()) {
+	if strings.IsNotEmpty(v.To) {
+		v.Statement.WriteString("TO ")
+		v.Statement.WriteString(instance.Database.Name)
+		v.Statement.WriteString(".")
+		v.Statement.WriteString(v.To)
+	}
+
+	if strings.IsNotEmpty(v.Columns.WithTypes()) {
 		v.Statement.WriteString(" (")
-		v.Statement.WriteString(instance.Table.Columns.WithTypes())
+		v.Statement.WriteString(v.Columns.WithTypes())
 		v.Statement.WriteString(") ")
-	}
-
-	if strings.IsNotEmpty(v.Engine) {
-		v.Statement.WriteString("ENGINE=")
-		v.Statement.WriteString(v.Engine)
-		v.Statement.WriteString(" ")
-	}
-
-	if len(v.PartitionBy) > 0 {
-		v.Statement.WriteString("PARTITION BY (")
-		v.Statement.WriteString(strings.Join(v.PartitionBy))
-		v.Statement.WriteString(") ")
-	}
-
-	if len(v.OrderBy) > 0 {
-		v.Statement.WriteString("ORDER BY (")
-		v.Statement.WriteString(strings.Join(v.OrderBy))
-		v.Statement.WriteString(") ")
-	}
-
-	if v.Populate.Type == PopulateNative {
-		v.Statement.WriteString("POPULATE ")
 	}
 
 	v.Statement.WriteString("AS ")
