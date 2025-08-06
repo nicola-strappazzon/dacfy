@@ -92,7 +92,7 @@ func (t Table) Validate() error {
 	var re = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]{1,254}$`)
 
 	if reflect.DeepEqual(t, Table{}) {
-	    return nil
+		return nil
 	}
 
 	if strings.IsEmpty(t.Name) && !t.Delete {
