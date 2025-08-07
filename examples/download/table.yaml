@@ -10,9 +10,9 @@ table:
     - toYYYYMM(when)
   order_by: [userid, when]
   columns:
-    - {name: when,   type: DateTime }
-    - {name: userid, type: UInt32 }
-    - {name: bytes,  type: Float32 }
+    - { name: when,   type: DateTime }
+    - { name: userid, type: UInt32 }
+    - { name: bytes,  type: Float32 }
   query: |
     INSERT INTO download
     SELECT

@@ -9,13 +9,13 @@ import (
 )
 
 type Table struct {
-	Columns     Columns         `yaml:"columns"`
+	Columns     ColumnsMap      `yaml:"columns"`
 	Delete      bool            `yaml:"delete"`
 	Engine      string          `yaml:"engine"`
 	Name        string          `yaml:"name"`
-	OrderBy     []string        `yaml:"order_by"`
-	PartitionBy []string        `yaml:"partition_by"`
-	PrimaryKey  []string        `yaml:"primary_key"`
+	OrderBy     ColumnsArray    `yaml:"order_by"`
+	PartitionBy ColumnsArray    `yaml:"partition_by"`
+	PrimaryKey  ColumnsArray    `yaml:"primary_key"`
 	Query       Query           `yaml:"query"`
 	Settings    []string        `yaml:"settings"`
 	Statement   strings.Builder `yaml:"-"`
@@ -44,19 +44,19 @@ func (t Table) Create() Table {
 
 	if len(t.PartitionBy) > 0 {
 		t.Statement.WriteString("PARTITION BY (")
-		t.Statement.WriteString(strings.Join(t.PartitionBy))
+		t.Statement.WriteString(t.PartitionBy.Join())
 		t.Statement.WriteString(") ")
 	}
 
 	if len(t.PrimaryKey) > 0 {
 		t.Statement.WriteString("PRIMARY KEY (")
-		t.Statement.WriteString(strings.Join(t.PrimaryKey))
+		t.Statement.WriteString(t.PrimaryKey.Join())
 		t.Statement.WriteString(") ")
 	}
 
 	if len(t.OrderBy) > 0 {
 		t.Statement.WriteString("ORDER BY (")
-		t.Statement.WriteString(strings.Join(t.OrderBy))
+		t.Statement.WriteString(t.OrderBy.Join())
 		t.Statement.WriteString(") ")
 	}
 
@@ -111,15 +111,15 @@ func (t Table) Validate() error {
 		return fmt.Errorf("table.engine is required for table %q", t.Name)
 	}
 
-	if err := t.ColumnExist("partition_by", t.PartitionBy); err != nil {
+	if err := t.ColumnExists("partition_by", t.PartitionBy); err != nil {
 		return err
 	}
 
-	if err := t.ColumnExist("primary_key", t.PrimaryKey); err != nil {
+	if err := t.ColumnExists("primary_key", t.PrimaryKey); err != nil {
 		return err
 	}
 
-	if err := t.ColumnExist("order_by", t.OrderBy); err != nil {
+	if err := t.ColumnExists("order_by", t.OrderBy); err != nil {
 		return err
 	}
 
@@ -132,7 +132,7 @@ func (t Table) Validate() error {
 	return nil
 }
 
-func (t Table) ColumnExist(fieldName string, values []string) error {
+func (t Table) ColumnExists(fieldName string, values ColumnsArray) error {
 	columnMap := map[string]bool{}
 
 	for _, col := range t.Columns {
@@ -140,7 +140,7 @@ func (t Table) ColumnExist(fieldName string, values []string) error {
 	}
 
 	for _, v := range values {
-		if !columnMap[v] {
+		if !columnMap[v.Clear()] {
 			return fmt.Errorf("field %q in %s not found in columns for table %q", v, fieldName, t.Name)
 		}
 	}

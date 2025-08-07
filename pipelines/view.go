@@ -1,17 +1,19 @@
 package pipelines
 
 import (
+	"reflect"
+
 	"github.com/nicola-strappazzon/clickhouse-dac/strings"
 )
 
 type View struct {
-	Columns      Columns         `yaml:"columns"`
+	Columns      ColumnsMap      `yaml:"columns"`
 	Delete       bool            `yaml:"delete"`
 	Engine       string          `yaml:"engine"`
 	Materialized bool            `yaml:"materialized"`
 	Name         string          `yaml:"name"`
-	OrderBy      []string        `yaml:"order_by"`
-	PartitionBy  []string        `yaml:"partition_by"`
+	OrderBy      ColumnsArray    `yaml:"order_by"`
+	PartitionBy  ColumnsArray    `yaml:"partition_by"`
 	Populate     Populate        `yaml:"populate"`
 	Query        Query           `yaml:"query"`
 	Statement    strings.Builder `yaml:"-"`
@@ -100,6 +102,7 @@ func (v View) DoMaterialized() View {
 		v.Statement.WriteString(instance.Database.Name)
 		v.Statement.WriteString(".")
 		v.Statement.WriteString(instance.Table.Name)
+		v.Statement.WriteString(" ")
 	}
 
 	if strings.IsNotEmpty(v.To) {
@@ -107,6 +110,7 @@ func (v View) DoMaterialized() View {
 		v.Statement.WriteString(instance.Database.Name)
 		v.Statement.WriteString(".")
 		v.Statement.WriteString(v.To)
+		v.Statement.WriteString(" ")
 	}
 
 	if strings.IsNotEmpty(v.Columns.WithTypes()) {
@@ -123,4 +127,11 @@ func (v View) DoMaterialized() View {
 
 func (v View) DML() string {
 	return v.Statement.String()
+}
+
+func (v View) Validate() error {
+	if reflect.DeepEqual(v, View{}) {
+		return nil
+	}
+	return nil
 }

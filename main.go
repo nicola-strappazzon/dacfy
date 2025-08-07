@@ -53,6 +53,10 @@ Find more information at: https://github.com/nicola-strappazzon/clickhouse-dac`,
 					return err
 				}
 
+				if err = pl.View.Validate(); err != nil {
+					return err
+				}
+
 				return ch.Connect()
 			}
 			return nil
@@ -77,13 +81,13 @@ Find more information at: https://github.com/nicola-strappazzon/clickhouse-dac`,
 }
 
 func (progressHandler) Progress(in clickhouse.Progress) {
-	tt.Write("--> Processing: %d of %d Rows, %s, %2.2f CPU, %s RAM, Progress: %.2f%%, Elapsed:%s",
+	tt.Write("[%.2f%%] %d of %d Rows, %s, %2.2f CPU, %s RAM, Elapsed:%s",
+		in.Percent(),
 		in.ReadRows,
 		in.TotalRows,
 		human.Bytes(in.ReadBytes),
 		in.CPU,
 		human.Bytes(in.Memory),
-		in.Percent(),
 		human.Duration(in.Elapsed()),
 	)
 }

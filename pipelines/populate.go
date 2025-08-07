@@ -21,7 +21,7 @@ func (p Pipelines) Populate() Pipelines {
 		return p
 	}
 
-	if strings.IsEmpty(p.Table.Name) {
+	if strings.IsEmpty(p.Table.Name) && strings.IsEmpty(p.View.To) {
 		return p
 	}
 
@@ -29,10 +29,23 @@ func (p Pipelines) Populate() Pipelines {
 	p.Statement.WriteString("INSERT INTO ")
 	p.Statement.WriteString(p.Database.Name)
 	p.Statement.WriteString(".")
-	p.Statement.WriteString(p.Table.Name)
-	p.Statement.WriteString(" (")
-	p.Statement.WriteString(p.Table.Columns.WithoutTypes())
-	p.Statement.WriteString(") ")
+
+	if strings.IsNotEmpty(p.View.To) {
+		p.Statement.WriteString(p.View.To)
+	} else if strings.IsNotEmpty(p.Table.Name) {
+		p.Statement.WriteString(p.Table.Name)
+	}
+
+	if strings.IsNotEmpty(p.View.Columns.WithTypes()) {
+		p.Statement.WriteString(" (")
+		p.Statement.WriteString(p.View.Columns.WithoutTypes())
+		p.Statement.WriteString(") ")
+	} else if strings.IsNotEmpty(p.Table.Columns.WithTypes()) {
+		p.Statement.WriteString(" (")
+		p.Statement.WriteString(p.Table.Columns.WithoutTypes())
+		p.Statement.WriteString(") ")
+	}
+
 	p.Statement.WriteString(p.View.Query.Minify())
 
 	return p
