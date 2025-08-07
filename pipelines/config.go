@@ -1,9 +1,10 @@
 package pipelines
 
 type Config struct {
-	Pipe     string // Path to the pipelines file.
 	Host     string // ClickHouse server host and port.
-	User     string // Username for the ClickHouse server.
 	Password string // Password for the ClickHouse server.
+	Pipe     string // Path to the pipelines file.
+	SQL      bool   // Show SQL Statement.
 	TLS      bool   // Enable TLS for the ClickHouse server.
+	User     string // Username for the ClickHouse server.
 }

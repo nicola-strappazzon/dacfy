@@ -63,6 +63,10 @@ func Run() (err error) {
 			fmt.Println("-->", query.Message)
 		}
 
+		if pl.Config.SQL {
+			fmt.Println(query.Statement)
+		}
+
 		if err = ch.Execute(query.Statement); err != nil {
 			return err
 		}

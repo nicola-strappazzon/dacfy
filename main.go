@@ -67,19 +67,19 @@ Find more information at: https://github.com/nicola-strappazzon/clickhouse-dac`,
 	rootCmd.PersistentFlags().StringVar(&pl.Config.User, "user", "default", "Username for the ClickHouse server.")
 	rootCmd.PersistentFlags().StringVar(&pl.Config.Password, "password", "", "Password for the ClickHouse server.")
 	rootCmd.PersistentFlags().BoolVar(&pl.Config.TLS, "tls", false, "Enable TLS for the ClickHouse server.")
+	rootCmd.PersistentFlags().BoolVar(&pl.Config.SQL, "sql", false, "Show SQL Statement.")
 	rootCmd.PersistentFlags().StringVar(&pl.Config.Pipe, "pipe", "", "Path to the pipelines file.")
 	rootCmd.AddCommand(deploy.NewCommand())
 	rootCmd.AddCommand(destroy.NewCommand())
 	rootCmd.AddCommand(populate.NewCommand())
 	rootCmd.AddCommand(version.NewCommand())
 
-	tt.New()
 	rootCmd.Execute()
-	tt.Rune('\n')
 }
 
 func (progressHandler) WriteProgress(in clickhouse.Progress) {
-	tt.Write("\r[%.2f%%] %d of %d Rows, %s, %2.2f CPU, %s RAM, Elapsed:%s",
+	tt.New()
+	tt.Write("\r[%.0f%%] %d of %d Rows, %s, %2.2f CPU, %s RAM, Elapsed:%s",
 		in.Percent(),
 		in.ReadRows,
 		in.TotalRows,

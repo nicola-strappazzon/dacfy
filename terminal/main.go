@@ -32,8 +32,3 @@ func (t *Terminal) Write(format string, a ...any) {
 	t.Output.WriteString(fmt.Sprintf(format, a...))
 	t.Flush()
 }
-
-func (t *Terminal) Rune(in rune) {
-	t.Output.WriteRune(in)
-	t.Flush()
-}

@@ -30,5 +30,12 @@ func NewCommand() *cobra.Command {
 
 func Run() error {
 	fmt.Println("--> Starting to populate the table:", pl.PopulateTableName())
-	return ch.ExecuteWitchLogger(pl.Populate().DML())
+
+	if pl.Config.SQL {
+		fmt.Println(pl.Populate().DML())
+	}
+
+	err := ch.ExecuteWitchLogger(pl.Populate().DML())
+	fmt.Println("")
+	return err
 }
