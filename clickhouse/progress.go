@@ -4,6 +4,10 @@ import (
 	"time"
 )
 
+type LoggerProgress interface {
+	WriteProgress(in Progress)
+}
+
 type Progress struct {
 	Start      time.Time
 	ReadRows   uint64
@@ -13,6 +17,8 @@ type Progress struct {
 	PeakMemory uint64
 	CPU        float64
 }
+
+var loggerProgress LoggerProgress = nil
 
 func (p *Progress) StartNow() {
 	p.Start = time.Now()

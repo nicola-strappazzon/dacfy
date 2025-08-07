@@ -31,14 +31,27 @@ func NewCommand() *cobra.Command {
 
 func Run() (err error) {
 	queries := []struct {
+		Message   string
 		Statement string
-		Logger    bool
 	}{
-		{Statement: pl.Database.Create().DML()},
-		{Statement: pl.Database.Use().DML()},
-		{Statement: pl.Table.Create().DML()},
-		{Statement: pl.Table.Query.String()},
-		{Statement: pl.View.Create().DML()},
+		{
+			Statement: pl.Database.Create().DML(),
+			Message:   fmt.Sprintf("Create database: %s", pl.Database.Name),
+		},
+		{
+			Statement: pl.Database.Use().DML(),
+		},
+		{
+			Statement: pl.Table.Create().DML(),
+			Message:   fmt.Sprintf("Create table: %s", pl.Table.Name),
+		},
+		{
+			Statement: pl.Table.Query.String(),
+		},
+		{
+			Statement: pl.View.Create().DML(),
+			Message:   fmt.Sprintf("Create view: %s", pl.View.Name),
+		},
 	}
 
 	for _, query := range queries {
@@ -46,15 +59,11 @@ func Run() (err error) {
 			continue
 		}
 
-		fmt.Println("==> Query:", query.Statement)
-
-		if query.Logger {
-			err = ch.ExecuteWitchLogger(query.Statement)
-		} else {
-			err = ch.Execute(query.Statement)
+		if strings.IsNotEmpty(query.Message) {
+			fmt.Println("-->", query.Message)
 		}
 
-		if err != nil {
+		if err = ch.Execute(query.Statement); err != nil {
 			return err
 		}
 	}

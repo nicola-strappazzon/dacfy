@@ -31,12 +31,25 @@ func NewCommand() *cobra.Command {
 
 func Run() error {
 	queries := []struct {
+		Message   string
 		Statement string
 		Delete    bool
 	}{
-		{Statement: pl.View.Drop().DML(), Delete: pl.View.Delete},
-		{Statement: pl.Table.Drop().DML(), Delete: pl.Table.Delete},
-		{Statement: pl.Database.Drop().DML(), Delete: pl.Database.Delete},
+		{
+			Statement: pl.View.Drop().DML(),
+			Delete:    pl.View.Delete,
+			Message:   fmt.Sprintf("Delete view: %s", pl.View.Name),
+		},
+		{
+			Statement: pl.Table.Drop().DML(),
+			Delete:    pl.Table.Delete,
+			Message:   fmt.Sprintf("Delete table: %s", pl.Table.Name),
+		},
+		{
+			Statement: pl.Database.Drop().DML(),
+			Delete:    pl.Database.Delete,
+			Message:   fmt.Sprintf("Delete database: %s", pl.Database.Name),
+		},
 	}
 
 	for _, query := range queries {
@@ -48,7 +61,9 @@ func Run() error {
 			continue
 		}
 
-		fmt.Println("==> Query:", query.Statement)
+		if strings.IsNotEmpty(query.Message) {
+			fmt.Println("-->", query.Message)
+		}
 
 		if err := ch.Execute(query.Statement); err != nil {
 			return err

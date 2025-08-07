@@ -74,14 +74,12 @@ Find more information at: https://github.com/nicola-strappazzon/clickhouse-dac`,
 	rootCmd.AddCommand(version.NewCommand())
 
 	tt.New()
-	tt.CursorHide()
 	rootCmd.Execute()
 	tt.Rune('\n')
-	tt.CursorShow()
 }
 
-func (progressHandler) Progress(in clickhouse.Progress) {
-	tt.Write("[%.2f%%] %d of %d Rows, %s, %2.2f CPU, %s RAM, Elapsed:%s",
+func (progressHandler) WriteProgress(in clickhouse.Progress) {
+	tt.Write("\r[%.2f%%] %d of %d Rows, %s, %2.2f CPU, %s RAM, Elapsed:%s",
 		in.Percent(),
 		in.ReadRows,
 		in.TotalRows,

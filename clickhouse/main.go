@@ -100,7 +100,7 @@ func (ch *ClickHouse) ExecuteWitchLogger(in string) error {
 
 			go func() {
 				ch.GatherSystemProcess()
-				loggerProgress.Progress(ch.Progress)
+				loggerProgress.WriteProgress(ch.Progress)
 			}()
 		}),
 	)

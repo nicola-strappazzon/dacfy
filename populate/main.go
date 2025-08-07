@@ -1,8 +1,12 @@
 package populate
 
 import (
+	"fmt"
+
 	"github.com/nicola-strappazzon/clickhouse-dac/clickhouse"
 	"github.com/nicola-strappazzon/clickhouse-dac/pipelines"
+	"github.com/nicola-strappazzon/clickhouse-dac/strings"
+
 	"github.com/spf13/cobra"
 )
 
@@ -26,5 +30,13 @@ func NewCommand() *cobra.Command {
 }
 
 func Run() error {
+	if strings.IsNotEmpty(pl.Table.Name) {
+		fmt.Println("--> Populate table:", pl.Table.Name)
+	}
+
+	if strings.IsNotEmpty(pl.View.To) {
+		fmt.Println("--> Populate table:", pl.View.To)
+	}
+
 	return ch.ExecuteWitchLogger(pl.Populate().DML())
 }
