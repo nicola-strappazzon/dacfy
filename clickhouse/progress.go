@@ -42,6 +42,16 @@ func (p Progress) Elapsed() time.Duration {
 	return time.Since(p.Start)
 }
 
-func (p Progress) Percent() float64 {
-	return float64(p.ReadRows) / float64(p.TotalRows) * 100
+func (p Progress) Percent() (out float64) {
+	if p.TotalRows == 0 {
+		return 0
+	}
+
+	out = float64(p.ReadRows) / float64(p.TotalRows) * 100
+
+	if out > float64(100) {
+		return 100
+	}
+
+	return out
 }

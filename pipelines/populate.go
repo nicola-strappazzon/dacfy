@@ -4,6 +4,18 @@ import (
 	"github.com/nicola-strappazzon/clickhouse-dac/strings"
 )
 
+func (p Pipelines) PopulateTableName() string {
+	if strings.IsNotEmpty(p.Table.Name) {
+		return p.Table.Name
+	}
+
+	if strings.IsNotEmpty(p.View.To) {
+		return p.View.To
+	}
+
+	return ""
+}
+
 func (p Pipelines) Populate() Pipelines {
 	if !p.View.Materialized {
 		return p
