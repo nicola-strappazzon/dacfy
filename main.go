@@ -1,12 +1,12 @@
 package main
 
 import (
+	"github.com/nicola-strappazzon/clickhouse-dac/backfill"
 	"github.com/nicola-strappazzon/clickhouse-dac/clickhouse"
-	"github.com/nicola-strappazzon/clickhouse-dac/deploy"
-	"github.com/nicola-strappazzon/clickhouse-dac/destroy"
+	"github.com/nicola-strappazzon/clickhouse-dac/create"
+	"github.com/nicola-strappazzon/clickhouse-dac/drop"
 	"github.com/nicola-strappazzon/clickhouse-dac/human"
 	"github.com/nicola-strappazzon/clickhouse-dac/pipelines"
-	"github.com/nicola-strappazzon/clickhouse-dac/populate"
 	"github.com/nicola-strappazzon/clickhouse-dac/terminal"
 	"github.com/nicola-strappazzon/clickhouse-dac/version"
 
@@ -28,9 +28,9 @@ func main() {
 		Use: "clickhouse-dac [COMMANDS] [OPTIONS]",
 		Long: `ClickHouse Data as Code - A simple way to use pipelines for data transformation.
 
-  You can define your databases, tables, materialized views, and populate
-them, all in a single step using a YAML file. Then, deploy everything from
-the terminal and rollback just as easily, without effort or added complexity.
+  You can define your databases, tables, materialized views, and populate or 
+backfill them, all in a single step using a YAML file. Then, create everything
+from the terminal and rollback just as easily, without effort or added complexity.
 
 Find more information at: https://github.com/nicola-strappazzon/clickhouse-dac`,
 		Run: func(cmd *cobra.Command, args []string) {
@@ -69,9 +69,9 @@ Find more information at: https://github.com/nicola-strappazzon/clickhouse-dac`,
 	rootCmd.PersistentFlags().BoolVar(&pl.Config.TLS, "tls", false, "Enable TLS for the ClickHouse server.")
 	rootCmd.PersistentFlags().BoolVar(&pl.Config.SQL, "sql", false, "Show SQL Statement.")
 	rootCmd.PersistentFlags().StringVar(&pl.Config.Pipe, "pipe", "", "Path to the pipelines file.")
-	rootCmd.AddCommand(deploy.NewCommand())
-	rootCmd.AddCommand(destroy.NewCommand())
-	rootCmd.AddCommand(populate.NewCommand())
+	rootCmd.AddCommand(create.NewCommand())
+	rootCmd.AddCommand(drop.NewCommand())
+	rootCmd.AddCommand(backfill.NewCommand())
 	rootCmd.AddCommand(version.NewCommand())
 
 	rootCmd.Execute()

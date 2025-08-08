@@ -16,7 +16,7 @@ func (p Pipelines) PopulateTableName() string {
 	return ""
 }
 
-func (p Pipelines) Populate() Pipelines {
+func (p Pipelines) Backfill() Pipelines {
 	if !p.View.Materialized {
 		return p
 	}
@@ -25,7 +25,7 @@ func (p Pipelines) Populate() Pipelines {
 		return p
 	}
 
-	if p.View.Populate.Type != PopulateQuery {
+	if p.View.Populate.Type != PopulateBackFill {
 		return p
 	}
 
@@ -33,7 +33,7 @@ func (p Pipelines) Populate() Pipelines {
 		return p
 	}
 
-	if strings.IsEmpty(p.Table.Name) && strings.IsEmpty(p.View.To) {
+	if strings.IsEmpty(p.Table.Name) {
 		return p
 	}
 
@@ -41,12 +41,7 @@ func (p Pipelines) Populate() Pipelines {
 	p.Statement.WriteString("INSERT INTO ")
 	p.Statement.WriteString(p.Database.Name)
 	p.Statement.WriteString(".")
-
-	if strings.IsNotEmpty(p.View.To) {
-		p.Statement.WriteString(p.View.To)
-	} else if strings.IsNotEmpty(p.Table.Name) {
-		p.Statement.WriteString(p.Table.Name)
-	}
+	p.Statement.WriteString(p.PopulateTableName())
 
 	if strings.IsNotEmpty(p.View.Columns.WithTypes()) {
 		p.Statement.WriteString(" (")

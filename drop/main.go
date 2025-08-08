@@ -1,4 +1,4 @@
-package deploy
+package drop
 
 import (
 	"fmt"
@@ -15,9 +15,9 @@ var pl = pipelines.Instance()
 
 func NewCommand() *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:     "deploy",
-		Short:   "Create tables and materialized views as defined in the pipelines.",
-		Example: `clickhouse-dac deploy --pipe=foo.yaml`,
+		Use:     "drop",
+		Short:   "Remove tables and materialized views as defined in the pipelines.",
+		Example: `clickhouse-dac drop --pipe=foo.yaml`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return Run()
 		},
@@ -29,32 +29,34 @@ func NewCommand() *cobra.Command {
 	return cmd
 }
 
-func Run() (err error) {
+func Run() error {
 	queries := []struct {
 		Message   string
 		Statement string
+		Delete    bool
 	}{
 		{
-			Statement: pl.Database.Create().DML(),
-			Message:   fmt.Sprintf("Create database: %s", pl.Database.Name),
+			Statement: pl.View.Drop().DML(),
+			Delete:    pl.View.Delete,
+			Message:   fmt.Sprintf("Delete view: %s", pl.View.Name),
 		},
 		{
-			Statement: pl.Database.Use().DML(),
+			Statement: pl.Table.Drop().DML(),
+			Delete:    pl.Table.Delete,
+			Message:   fmt.Sprintf("Delete table: %s", pl.Table.Name),
 		},
 		{
-			Statement: pl.Table.Create().DML(),
-			Message:   fmt.Sprintf("Create table: %s", pl.Table.Name),
-		},
-		{
-			Statement: pl.Table.Query.String(),
-		},
-		{
-			Statement: pl.View.Create().DML(),
-			Message:   fmt.Sprintf("Create view: %s", pl.View.Name),
+			Statement: pl.Database.Drop().DML(),
+			Delete:    pl.Database.Delete,
+			Message:   fmt.Sprintf("Delete database: %s", pl.Database.Name),
 		},
 	}
 
 	for _, query := range queries {
+		if query.Delete == false {
+			continue
+		}
+
 		if strings.IsEmpty(query.Statement) {
 			continue
 		}
@@ -67,7 +69,7 @@ func Run() (err error) {
 			fmt.Println(query.Statement)
 		}
 
-		if err = ch.Execute(query.Statement); err != nil {
+		if err := ch.Execute(query.Statement); err != nil {
 			return err
 		}
 	}

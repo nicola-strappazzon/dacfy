@@ -43,83 +43,43 @@ func (v View) Create() View {
 		return v
 	}
 
-	if v.IsNormal() {
-		return v.DoNormal()
-	}
-
-	if v.IsMaterialized() {
-		return v.DoMaterialized()
-	}
-
-	// IsMaterializedNative --> DoMaterializedNative
-	// IsMaterializedQuery  --> ...
-	// IsMaterializedChunk  --> ...
-
-	return v
-}
-
-func (v View) IsNormal() bool {
-	return (v.Materialized == false)
-}
-
-func (v View) IsMaterialized() bool {
-	return (v.Materialized == true)
-}
-
-func (v View) DoNormal() View {
-	if strings.IsEmpty(v.Name) {
-		return v
-	}
-
 	v.Statement = strings.Builder{}
-	v.Statement.WriteString("CREATE VIEW IF NOT EXISTS ")
+	v.Statement.WriteString("CREATE ")
+
+	if v.Materialized {
+		v.Statement.WriteString("MATERIALIZED ")
+	}
+
+	v.Statement.WriteString("VIEW IF NOT EXISTS ")
 	v.Statement.WriteString(instance.Database.Name)
 	v.Statement.WriteString(".")
 	v.Statement.WriteString(v.Name)
-	v.Statement.WriteString(" (")
-	v.Statement.WriteString(instance.View.Columns.WithTypes())
-	v.Statement.WriteString(") ")
-	v.Statement.WriteString(" AS ")
-	v.Statement.WriteString(instance.View.Query.Minify())
 
-	return v
-}
-
-func (v View) DoMaterialized() View {
-	if strings.IsEmpty(v.Name) {
-		return v
-	}
-
-	v.Statement = strings.Builder{}
-	v.Statement.WriteString("CREATE MATERIALIZED VIEW IF NOT EXISTS ")
+	v.Statement.WriteString(" TO ")
 	v.Statement.WriteString(instance.Database.Name)
 	v.Statement.WriteString(".")
-	v.Statement.WriteString(v.Name)
-	v.Statement.WriteString(" ")
 
 	if strings.IsNotEmpty(instance.Table.Name) {
-		v.Statement.WriteString("TO ")
-		v.Statement.WriteString(instance.Database.Name)
-		v.Statement.WriteString(".")
 		v.Statement.WriteString(instance.Table.Name)
-		v.Statement.WriteString(" ")
 	}
 
 	if strings.IsNotEmpty(v.To) {
-		v.Statement.WriteString("TO ")
-		v.Statement.WriteString(instance.Database.Name)
-		v.Statement.WriteString(".")
 		v.Statement.WriteString(v.To)
-		v.Statement.WriteString(" ")
 	}
 
-	if strings.IsNotEmpty(v.Columns.WithTypes()) {
+	if v.Materialized && strings.IsNotEmpty(v.Columns.WithTypes()) {
 		v.Statement.WriteString(" (")
 		v.Statement.WriteString(v.Columns.WithTypes())
-		v.Statement.WriteString(") ")
+		v.Statement.WriteString(")")
 	}
 
-	v.Statement.WriteString("AS ")
+	if !v.Materialized && strings.IsNotEmpty(instance.View.Columns.WithTypes()) {
+		v.Statement.WriteString(" (")
+		v.Statement.WriteString(instance.View.Columns.WithTypes())
+		v.Statement.WriteString(")")
+	}
+
+	v.Statement.WriteString(" AS ")
 	v.Statement.WriteString(instance.View.Query.Minify())
 
 	return v

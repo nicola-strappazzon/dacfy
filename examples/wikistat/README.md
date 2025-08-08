@@ -6,8 +6,9 @@ This example shows how to create a materialized view by defining its target tabl
 
 ```bash
 cd examples/wikistat/
-dac deploy --pipe=table.yaml
-dac deploy --pipe=view.yaml
+clickhouse-dac create --pipe=table.yaml
+clickhouse-dac create --pipe=view.yaml
+clickhouse-dac backfill --pipe=view.yaml
 ```
 
 > [!NOTE]  

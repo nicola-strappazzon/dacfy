@@ -1,4 +1,4 @@
-package populate
+package backfill
 
 import (
 	"fmt"
@@ -14,9 +14,9 @@ var pl = pipelines.Instance()
 
 func NewCommand() *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:     "populate",
-		Short:   "Populate tables as defined in the pipelines.",
-		Example: `clickhouse-dac populate --pipe=foo.yaml`,
+		Use:     "backfill",
+		Short:   "Backfill tables as defined in the pipelines.",
+		Example: `clickhouse-dac backfill --pipe=foo.yaml`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return Run()
 		},
@@ -29,13 +29,13 @@ func NewCommand() *cobra.Command {
 }
 
 func Run() error {
-	fmt.Println("--> Starting to populate the table:", pl.PopulateTableName())
+	fmt.Println("--> Starting to backfill the table:", pl.PopulateTableName())
 
 	if pl.Config.SQL {
-		fmt.Println(pl.Populate().DML())
+		fmt.Println(pl.Backfill().DML())
 	}
 
-	err := ch.ExecuteWitchLogger(pl.Populate().DML())
+	err := ch.ExecuteWitchLogger(pl.Backfill().DML())
 	fmt.Println("")
 	return err
 }

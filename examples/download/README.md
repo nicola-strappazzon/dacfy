@@ -6,8 +6,9 @@ This example demonstrates how to create a materialized view without explicitly d
 
 ```bash
 cd examples/download/
-dac deploy --pipe=table.yaml
-dac deploy --pipe=view.yaml
+clickhouse-dac create --pipe=table.yaml
+clickhouse-dac create --pipe=view.yaml
+clickhouse-dac backfill --pipe=view.yaml
 ```
 
 > [!NOTE]  
