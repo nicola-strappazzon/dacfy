@@ -28,14 +28,18 @@ func NewCommand() *cobra.Command {
 	return cmd
 }
 
-func Run() error {
-	fmt.Println("--> Starting to backfill the table:", pl.PopulateTableName())
-
-	if pl.Config.SQL {
-		fmt.Println(pl.Backfill().DML())
+func Run() (err error) {
+	if err = pl.Backfill.Validate(); err != nil {
+		return err
 	}
 
-	err := ch.ExecuteWitchLogger(pl.Backfill().DML())
+	fmt.Println("--> Starting to backfill the table:", pl.View.To)
+
+	if pl.Config.SQL {
+		fmt.Println(pl.Backfill.Do().DML())
+	}
+
+	err = ch.ExecuteWitchLogger(pl.Backfill.Do().DML())
 	fmt.Println("")
 	return err
 }

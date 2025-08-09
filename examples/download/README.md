@@ -8,7 +8,6 @@ This example demonstrates how to create a materialized view without explicitly d
 cd examples/download/
 clickhouse-dac create --pipe=table.yaml
 clickhouse-dac create --pipe=view.yaml
-clickhouse-dac backfill --pipe=view.yaml
 ```
 
 > [!NOTE]  

@@ -1,63 +1,88 @@
 package pipelines
 
 import (
+	"fmt"
+
 	"github.com/nicola-strappazzon/clickhouse-dac/strings"
 )
 
-func (p Pipelines) PopulateTableName() string {
-	if strings.IsNotEmpty(p.Table.Name) {
-		return p.Table.Name
-	}
-
-	if strings.IsNotEmpty(p.View.To) {
-		return p.View.To
-	}
-
-	return ""
+type Backfill struct {
+	Statement strings.Builder `yaml:"-"`
+	Parent    *Pipelines      `yaml:"-"`
 }
 
-func (p Pipelines) Backfill() Pipelines {
-	if !p.View.Materialized {
-		return p
+func (b Backfill) Do() Backfill {
+	if !b.Parent.View.Materialized {
+		return b
 	}
 
-	if p.View.Populate.Skip {
-		return p
+	if b.Parent.View.Populate.IsNotBackFill() {
+		return b
 	}
 
-	if p.View.Populate.Type != PopulateBackFill {
-		return p
+	if b.Parent.Database.Name.IsEmpty() {
+		return b
 	}
 
-	if strings.IsEmpty(p.Database.Name) {
-		return p
+	if b.Parent.View.To.IsEmpty() {
+		return b
 	}
 
-	if strings.IsEmpty(p.Table.Name) {
-		return p
+	if b.Parent.View.Query.IsEmpty() {
+		return b
 	}
 
-	p.Statement = strings.Builder{}
-	p.Statement.WriteString("INSERT INTO ")
-	p.Statement.WriteString(p.Database.Name)
-	p.Statement.WriteString(".")
-	p.Statement.WriteString(p.PopulateTableName())
+	b.Statement = strings.Builder{}
+	b.Statement.WriteString("INSERT INTO ")
+	b.Statement.WriteString(b.Parent.Database.Name.ToString())
+	b.Statement.WriteString(".")
+	b.Statement.WriteString(b.Parent.View.To.ToString())
 
-	if strings.IsNotEmpty(p.View.Columns.WithTypes()) {
-		p.Statement.WriteString(" (")
-		p.Statement.WriteString(p.View.Columns.WithoutTypes())
-		p.Statement.WriteString(") ")
-	} else if strings.IsNotEmpty(p.Table.Columns.WithTypes()) {
-		p.Statement.WriteString(" (")
-		p.Statement.WriteString(p.Table.Columns.WithoutTypes())
-		p.Statement.WriteString(") ")
+	if b.Parent.View.Columns.IsNotEmpty() {
+		b.Statement.WriteString(" (")
+		b.Statement.WriteString(b.Parent.View.Columns.JoinWithoutTypes())
+		b.Statement.WriteString(") ")
+	} else if b.Parent.Table.Columns.IsNotEmpty() {
+		b.Statement.WriteString(" (")
+		b.Statement.WriteString(b.Parent.Table.Columns.JoinWithoutTypes())
+		b.Statement.WriteString(") ")
 	}
 
-	p.Statement.WriteString(p.View.Query.Minify())
+	b.Statement.WriteString(b.Parent.View.Query.Minify())
 
-	return p
+	return b
 }
 
-func (p Pipelines) DML() string {
-	return p.Statement.String()
+func (b Backfill) DML() string {
+	return b.Statement.String()
+}
+
+func (b Backfill) Validate() error {
+	if b.Parent.Database.Name.IsEmpty() {
+		return fmt.Errorf("database.name is required")
+	}
+
+	if !b.Parent.View.Materialized {
+		return fmt.Errorf("view.materialized is required")
+	}
+
+	if b.Parent.View.Populate.IsNotBackFill() {
+		return fmt.Errorf("view.populate is not 'backfill', maybe it's just a view, check the documentation")
+	}
+
+	if b.Parent.View.To.IsNotValid() {
+		return fmt.Errorf("view.to is required")
+	}
+
+	if b.Parent.View.Columns.IsEmpty() {
+		return fmt.Errorf("view.columns must be defined for view %q", b.Parent.View.Name.ToString())
+	} else if b.Parent.Table.Columns.IsNotEmpty() {
+		return fmt.Errorf("table.columns must be defined for table %q", b.Parent.Table.Name.ToString())
+	}
+
+	if b.Parent.View.Query.IsEmpty() {
+		return fmt.Errorf("view.query is required")
+	}
+
+	return nil
 }

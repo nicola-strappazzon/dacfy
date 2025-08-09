@@ -3,8 +3,6 @@ package pipelines
 import (
 	"os"
 
-	"github.com/nicola-strappazzon/clickhouse-dac/strings"
-
 	"github.com/goccy/go-yaml"
 )
 
@@ -19,11 +17,11 @@ func Instance() *Pipelines {
 }
 
 type Pipelines struct {
-	Config    Config          `yaml:"-"`
-	Database  Database        `yaml:"database"`
-	Statement strings.Builder `yaml:"-"`
-	Table     Table           `yaml:"table"`
-	View      View            `yaml:"view"`
+	Config   Config   `yaml:"-"`
+	Database Database `yaml:"database"`
+	Table    Table    `yaml:"table"`
+	View     View     `yaml:"view"`
+	Backfill Backfill `yaml:"-"`
 }
 
 func (p *Pipelines) Load(in string) error {
@@ -33,4 +31,10 @@ func (p *Pipelines) Load(in string) error {
 	}
 
 	return yaml.Unmarshal(yamlFile, p)
+}
+
+func (p *Pipelines) SetParents() {
+	p.Table.Parent = p
+	p.View.Parent = p
+	p.Backfill.Parent = p
 }

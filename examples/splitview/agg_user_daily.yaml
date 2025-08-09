@@ -1,0 +1,17 @@
+---
+database:
+  name: splitview
+table:
+  name: agg_user_daily
+  delete: true
+  columns:
+    - { name: event_date,  type: Date }
+    - { name: user_id,     type: UInt64 }
+    - { name: device,      type: "LowCardinality(String)" }
+    - { name: events_cnt,  type: "AggregateFunction(count)" }
+    - { name: amount_sum,  type: "AggregateFunction(sum, Float64)" }
+    - { name: uniq_events, type: "AggregateFunction(uniqCombined, String)" }
+    - { name: top_events,  type: "AggregateFunction(topK(5), String)" }
+    - { name: amount_q,    type: "AggregateFunction(quantilesTDigest(0.5,0.9,0.99), Float64)" }
+  engine: AggregatingMergeTree
+  order_by: [event_date, user_id, device]
