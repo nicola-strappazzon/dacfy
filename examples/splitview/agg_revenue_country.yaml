@@ -1,0 +1,17 @@
+---
+database:
+  name: splitview
+table:
+  name: agg_revenue_country
+  delete: true
+  columns:
+    - { name: event_date,    type: Date }
+    - { name: country,       type: "LowCardinality(String)" }
+    - { name: device,        type: "LowCardinality(String)" }
+    - { name: users_uniq,    type: "AggregateFunction(uniqExact, UInt64)" }
+    - { name: rev_sum,       type: "AggregateFunction(sum, Float64)" }
+    - { name: rev_max,       type: "AggregateFunction(max, Float64)" }
+    - { name: purchases_cnt, type: "AggregateFunction(count)" }
+    - { name: rev_top_users, type: "AggregateFunction(topK(10), UInt64)" }
+  engine: AggregatingMergeTree
+  order_by: [event_date, country, device]

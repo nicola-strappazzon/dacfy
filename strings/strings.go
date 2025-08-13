@@ -8,6 +8,10 @@ func Join(in []string) string {
 	return strings.Join(in[:], ",")
 }
 
+func TrimSpace(in string) string {
+	return strings.TrimSpace(in)
+}
+
 func IsEmpty(in string) bool {
 	return !IsNotEmpty(in)
 }

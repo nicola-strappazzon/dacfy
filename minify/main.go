@@ -18,7 +18,7 @@ func Minify(s string) string {
 	for i := 0; i < length; i++ {
 		char := sql[i]
 
-		// --- Comentarios ---
+		// --- Comments ---
 		if !comment && !multiline && char == '-' && i+1 < length && sql[i+1] == '-' {
 			comment = true
 			i++ // skip next
@@ -44,13 +44,13 @@ func Minify(s string) string {
 			continue
 		}
 
-		// --- Salto de línea y tab ---
+		// --- Newlines and tabs ---
 		if char == '\n' || char == '\r' || char == '\t' {
 			whitespace = true
 			continue
 		}
 
-		// --- Espacios múltiples ---
+		// --- Multiple spaces ---
 		if unicode.IsSpace(char) {
 			whitespace = true
 			continue
@@ -63,12 +63,12 @@ func Minify(s string) string {
 			whitespace = false
 		}
 
-		// --- Eliminar backticks ---
+		// --- Remove backticks ---
 		if char == '`' {
 			continue
 		}
 
-		// --- Manejar comillas (strings) ---
+		// --- Handle quotes (strings) ---
 		if quote == 0 && (char == '\'' || char == '"') {
 			quote = char
 			result = append(result, char)
@@ -84,7 +84,7 @@ func Minify(s string) string {
 		result = append(result, char)
 	}
 
-	// Remueve espacio final si existe
+	// Remove trailing space if it exists
 	if len(result) > 0 && result[len(result)-1] == ' ' {
 		result = result[:len(result)-1]
 	}

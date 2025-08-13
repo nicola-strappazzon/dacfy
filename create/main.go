@@ -46,7 +46,7 @@ func Run() (err error) {
 			Message:   fmt.Sprintf("Create table: %s", pl.Table.Name),
 		},
 		{
-			Statement: pl.Table.Query.String(),
+			Statement: pl.Table.Query.ToString(),
 		},
 		{
 			Statement: pl.View.Create().DML(),

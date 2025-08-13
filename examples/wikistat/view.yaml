@@ -12,16 +12,16 @@ table:
     - {name: hits,    type: UInt32 }
 view:
   name: wikistat_top_projects_mv
+  to: wikistat_top_projects
   delete: true
   materialized: true
-  populate:
-    type: query
+  populate: backfill
   query: |
     SELECT
       date(time) AS date,
       project,
       sum(hits) AS hits
-    FROM wikistat
+    FROM wikistat.wikistat
     GROUP BY
       date,
       project

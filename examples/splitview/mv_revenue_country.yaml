@@ -1,0 +1,21 @@
+---
+database:
+  name: splitview
+view:
+  name: mv_revenue_country
+  to: agg_revenue_country
+  delete: true
+  materialized: true
+  populate: backfill
+  query: |
+    SELECT
+        event_date,
+        country,
+        device,
+        uniqExactState(user_id)                AS users_uniq,
+        sumState(amount)                       AS rev_sum,
+        maxState(amount)                       AS rev_max,
+        countStateIf(amount > 0)               AS purchases_cnt,
+        topKState(10)(CAST(user_id AS UInt64)) AS rev_top_users
+    FROM events
+    GROUP BY event_date, country, device

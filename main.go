@@ -45,6 +45,8 @@ Find more information at: https://github.com/nicola-strappazzon/clickhouse-dac`,
 					return err
 				}
 
+				pl.SetParents()
+
 				if err = pl.Database.Validate(); err != nil {
 					return err
 				}
@@ -61,6 +63,7 @@ Find more information at: https://github.com/nicola-strappazzon/clickhouse-dac`,
 			}
 			return nil
 		},
+		SilenceUsage: true,
 	}
 
 	rootCmd.PersistentFlags().StringVar(&pl.Config.Host, "host", "127.0.0.1:9000", "ClickHouse server host and port.")
@@ -79,7 +82,7 @@ Find more information at: https://github.com/nicola-strappazzon/clickhouse-dac`,
 
 func (progressHandler) WriteProgress(in clickhouse.Progress) {
 	tt.New()
-	tt.Write("\r[%.0f%%] %d of %d Rows, %s, %2.2f CPU, %s RAM, Elapsed:%s",
+	tt.Write("\r[%.0f%%] %d of %d Rows, %s, %2.2f CPU, %s RAM, Elapsed %s",
 		in.Percent(),
 		in.ReadRows,
 		in.TotalRows,
