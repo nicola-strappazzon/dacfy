@@ -3,7 +3,7 @@ package minify_test
 import (
 	"testing"
 
-	"github.com/nicola-strappazzon/clickhouse-dac/minify"
+	"github.com/nicola-strappazzon/dacfy/minify"
 
 	"github.com/stretchr/testify/assert"
 )

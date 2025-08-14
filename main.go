@@ -1,14 +1,14 @@
 package main
 
 import (
-	"github.com/nicola-strappazzon/clickhouse-dac/backfill"
-	"github.com/nicola-strappazzon/clickhouse-dac/clickhouse"
-	"github.com/nicola-strappazzon/clickhouse-dac/create"
-	"github.com/nicola-strappazzon/clickhouse-dac/drop"
-	"github.com/nicola-strappazzon/clickhouse-dac/human"
-	"github.com/nicola-strappazzon/clickhouse-dac/pipelines"
-	"github.com/nicola-strappazzon/clickhouse-dac/terminal"
-	"github.com/nicola-strappazzon/clickhouse-dac/version"
+	"github.com/nicola-strappazzon/dacfy/backfill"
+	"github.com/nicola-strappazzon/dacfy/clickhouse"
+	"github.com/nicola-strappazzon/dacfy/create"
+	"github.com/nicola-strappazzon/dacfy/drop"
+	"github.com/nicola-strappazzon/dacfy/human"
+	"github.com/nicola-strappazzon/dacfy/pipelines"
+	"github.com/nicola-strappazzon/dacfy/terminal"
+	"github.com/nicola-strappazzon/dacfy/version"
 
 	"github.com/spf13/cobra"
 )
@@ -25,14 +25,14 @@ func init() {
 
 func main() {
 	var rootCmd = &cobra.Command{
-		Use: "clickhouse-dac [COMMANDS] [OPTIONS]",
+		Use: "dacfy [COMMANDS] [OPTIONS]",
 		Long: `ClickHouse Data as Code - A simple way to use pipelines for data transformation.
 
   You can define your databases, tables, materialized views, and populate or 
 backfill them, all in a single step using a YAML file. Then, create everything
 from the terminal and rollback just as easily, without effort or added complexity.
 
-Find more information at: https://github.com/nicola-strappazzon/clickhouse-dac`,
+Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) == 0 {
 				cmd.Help()

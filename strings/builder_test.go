@@ -4,7 +4,7 @@ import (
 	stdstrings "strings"
 	"testing"
 
-	mystrings "github.com/nicola-strappazzon/clickhouse-dac/strings"
+	mystrings "github.com/nicola-strappazzon/dacfy/strings"
 
 	"github.com/stretchr/testify/assert"
 )

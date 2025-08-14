@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/nicola-strappazzon/clickhouse-dac/pipelines/columns"
-	"github.com/nicola-strappazzon/clickhouse-dac/strings"
+	"github.com/nicola-strappazzon/dacfy/pipelines/columns"
+	"github.com/nicola-strappazzon/dacfy/strings"
 )
 
 type View struct {

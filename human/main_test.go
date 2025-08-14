@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nicola-strappazzon/clickhouse-dac/human"
+	"github.com/nicola-strappazzon/dacfy/human"
 
 	"github.com/stretchr/testify/assert"
 )

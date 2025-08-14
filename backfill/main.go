@@ -3,8 +3,8 @@ package backfill
 import (
 	"fmt"
 
-	"github.com/nicola-strappazzon/clickhouse-dac/clickhouse"
-	"github.com/nicola-strappazzon/clickhouse-dac/pipelines"
+	"github.com/nicola-strappazzon/dacfy/clickhouse"
+	"github.com/nicola-strappazzon/dacfy/pipelines"
 
 	"github.com/spf13/cobra"
 )
@@ -16,7 +16,7 @@ func NewCommand() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:     "backfill",
 		Short:   "Backfill tables as defined in the pipelines.",
-		Example: `clickhouse-dac backfill --pipe=foo.yaml`,
+		Example: `dacfy backfill --pipe=foo.yaml`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return Run()
 		},

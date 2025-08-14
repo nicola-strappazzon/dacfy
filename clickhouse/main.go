@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/nicola-strappazzon/clickhouse-dac/pipelines"
-	"github.com/nicola-strappazzon/clickhouse-dac/version"
+	"github.com/nicola-strappazzon/dacfy/pipelines"
+	"github.com/nicola-strappazzon/dacfy/version"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"

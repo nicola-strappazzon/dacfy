@@ -1,4 +1,4 @@
-module github.com/nicola-strappazzon/clickhouse-dac
+module github.com/nicola-strappazzon/dacfy
 
 go 1.24.2
 

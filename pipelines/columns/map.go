@@ -3,7 +3,7 @@ package columns
 import (
 	"fmt"
 
-	"github.com/nicola-strappazzon/clickhouse-dac/strings"
+	"github.com/nicola-strappazzon/dacfy/strings"
 )
 
 type Map []struct {

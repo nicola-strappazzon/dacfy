@@ -3,9 +3,9 @@ package drop
 import (
 	"fmt"
 
-	"github.com/nicola-strappazzon/clickhouse-dac/clickhouse"
-	"github.com/nicola-strappazzon/clickhouse-dac/pipelines"
-	"github.com/nicola-strappazzon/clickhouse-dac/strings"
+	"github.com/nicola-strappazzon/dacfy/clickhouse"
+	"github.com/nicola-strappazzon/dacfy/pipelines"
+	"github.com/nicola-strappazzon/dacfy/strings"
 
 	"github.com/spf13/cobra"
 )
@@ -17,7 +17,7 @@ func NewCommand() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:     "drop",
 		Short:   "Remove tables and materialized views as defined in the pipelines.",
-		Example: `clickhouse-dac drop --pipe=foo.yaml`,
+		Example: `dacfy drop --pipe=foo.yaml`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return Run()
 		},

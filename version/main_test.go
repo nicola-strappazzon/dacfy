@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/nicola-strappazzon/clickhouse-dac/version"
+	"github.com/nicola-strappazzon/dacfy/version"
 
 	"github.com/stretchr/testify/assert"
 )
