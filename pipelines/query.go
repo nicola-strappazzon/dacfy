@@ -1,8 +1,8 @@
 package pipelines
 
 import (
-	"github.com/nicola-strappazzon/clickhouse-dac/minify"
-	"github.com/nicola-strappazzon/clickhouse-dac/strings"
+	"github.com/nicola-strappazzon/dacfy/minify"
+	"github.com/nicola-strappazzon/dacfy/strings"
 )
 
 type Query string

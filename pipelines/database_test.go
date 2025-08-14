@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/nicola-strappazzon/clickhouse-dac/pipelines"
+	"github.com/nicola-strappazzon/dacfy/pipelines"
 
 	"github.com/stretchr/testify/assert"
 )

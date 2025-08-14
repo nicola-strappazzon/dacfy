@@ -32,15 +32,15 @@ This setup can be adapted for use cases like engagement tracking, revenue analyt
 
 ```bash
 cd examples/splitview/
-clickhouse-dac create --pipe events.yaml
-clickhouse-dac create --pipe agg_user_daily.yaml
-clickhouse-dac create --pipe agg_revenue_country.yaml
-clickhouse-dac create --pipe mv_user_daily.yaml
-clickhouse-dac create --pipe mv_revenue_country.yaml
+dacfy create --pipe events.yaml
+dacfy create --pipe agg_user_daily.yaml
+dacfy create --pipe agg_revenue_country.yaml
+dacfy create --pipe mv_user_daily.yaml
+dacfy create --pipe mv_revenue_country.yaml
 ```
 
 > [!NOTE]  
-> Make sure the `clickhouse-dac` package is installed on your system.
+> Make sure the `dacfy` package is installed on your system.
 
 ## Queries
 

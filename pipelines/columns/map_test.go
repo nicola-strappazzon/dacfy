@@ -3,7 +3,7 @@ package columns_test
 import (
 	"testing"
 
-	"github.com/nicola-strappazzon/clickhouse-dac/pipelines/columns"
+	"github.com/nicola-strappazzon/dacfy/pipelines/columns"
 
 	"github.com/stretchr/testify/assert"
 )
