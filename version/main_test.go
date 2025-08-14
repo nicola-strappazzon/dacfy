@@ -23,6 +23,7 @@ func TestNewCommand_PrintsVersion(t *testing.T) {
 	buf := bytes.NewBufferString("")
 	cmd.SetOut(buf)
 	err := cmd.Execute()
+	assert.NoError(t, err)
 
 	out, err := ioutil.ReadAll(buf)
 	if err != nil {
