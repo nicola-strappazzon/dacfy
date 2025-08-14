@@ -1,6 +1,7 @@
 # dacfy | Data as Code for ClickHouse
 
 [![Test](https://github.com/nicola-strappazzon/dacfy/actions/workflows/test.yaml/badge.svg?branch=main)](https://github.com/nicola-strappazzon/dacfy/actions/workflows/test.yaml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/nicola-strappazzon/dacfy)](https://goreportcard.com/report/github.com/nicola-strappazzon/dacfy)
 
 A simple way to use pipelines for data transformation: define your databases, tables, materialized views, and **populate** or **backfill** them, all in a single step using a YAML file. Then, deploy everything from the terminal and rollback just as easily, without effort or added complexity. Of course, with this tool you can use it to versioning code, integrate it into a CI/CD, and maybe more.
 
@@ -11,8 +12,7 @@ To understand exactly what this tool does, I’ve included a series of curated [
 Using [Homebrew](https://brew.sh/):
 
 ```bash
-brew tap nicola-strappazzon/tap
-brew install dacfy
+brew install nicola-strappazzon/tap/dacfy
 ```
 
 ## Install using go

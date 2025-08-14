@@ -21,8 +21,6 @@ builds:
       - amd64
       - arm64
       - arm
-      - ppc64le
-      - s390x
     goarm:
       - 7
     flags:
@@ -41,28 +39,19 @@ builds:
     ldflags:
       - -s -w -X github.com/nicola-strappazzon/dacfy/version.VERSION=v{{.Version}}
 
-brews:
+homebrew_casks:
   - name: dacfy
-    homepage: "https://github.com/nicola-strappazzon/dacfy"
-    description: "Dacfy is a lightweight tool that lets you manage ClickHouse database objects as code."
-    license: "GPL"
     repository:
       owner: nicola-strappazzon
       name: homebrew-tap
-    install: |
-      bin.install "dacfy"
-    test: |
-      system "#{bin}/dacfy version"
+      token: "{{ .Env.GITHUB_TOKEN }}"
+    homepage: https://github.com/nicola-strappazzon/dacfy
+    description: "dacfy is a lightweight tool that lets you manage ClickHouse database objects as code."
+    license: GPL
 
 archives:
-  - formats: [tar.gz]
-    name_template: >-
-      {{ .ProjectName }}_
-      {{- title .Os }}_
-      {{- if eq .Arch "amd64" }}amd64
-      {{- else if eq .Arch "386" }}i386
-      {{- else }}{{ .Arch }}{{ end }}
-      {{- if .Arm }}v{{ .Arm }}{{ end }}
+  - format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ if eq .Arch \"amd64\" }}amd64{{ else if eq .Arch \"386\" }}i386{{ else }}{{ .Arch }}{{ end }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
 
 checksum:
   name_template: "checksums.sha256"
