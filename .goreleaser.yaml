@@ -1,0 +1,65 @@
+version: 2
+
+project_name: dacfy
+
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+
+release:
+  prerelease: false
+
+env:
+  - CGO_ENABLED=0
+
+builds:
+  - id: linux
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+      - arm
+      - ppc64le
+      - s390x
+    goarm:
+      - 7
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X github.com/nicola-strappazzon/dacfy/version.VERSION=v{{.Version}}
+
+  - id: osx
+    goos:
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X github.com/nicola-strappazzon/dacfy/version.VERSION=v{{.Version}}
+
+archives:
+  - formats: [tar.gz]
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}amd64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+
+checksum:
+  name_template: "checksums.sha256"
+
+snapshot:
+  version_template: "{{ .Tag }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"

@@ -1,4 +1,5 @@
 SHELL := /bin/bash
+VERSION := `date +%Y%m%d%H%M`
 GREEN := $(shell tput -Txterm setaf 2)
 YELLOW := $(shell tput -Txterm setaf 3)
 RESET := $(shell tput -Txterm sgr0)
@@ -17,7 +18,7 @@ deps: ## Download dependencies
 
 build: ## Build binary for local operating system
 	go generate ./...
-	go build .
+	go build -ldflags "-s -w -X github.com/nicola-strappazzon/dacfy/version.VERSION=v${VERSION}" -o dacfy main.go
 
 run: ## Run code.
 	go run .
