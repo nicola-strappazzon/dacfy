@@ -41,6 +41,20 @@ builds:
     ldflags:
       - -s -w -X github.com/nicola-strappazzon/dacfy/version.VERSION=v{{.Version}}
 
+brews:
+  - name: dacfy
+    homepage: "https://github.com/nicola-strappazzon/dacfy"
+    description: "Dacfy is a lightweight tool that lets you manage ClickHouse database objects as code."
+    license: "GPL"
+    repository:
+      owner: nicola-strappazzon
+      name: homebrew-tap
+    install: |
+      bin.install "dacfy"
+    test: |
+      system "#{bin}/dacfy version"
+    dependencies: []
+
 archives:
   - formats: [tar.gz]
     name_template: >-
