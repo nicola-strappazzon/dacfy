@@ -1,6 +1,6 @@
 # Data as Code for ClickHouse
 
-[![Go](https://github.com/nicola-strappazzon/clickhouse-dac/actions/workflows/go.yaml/badge.svg?branch=main)](https://github.com/nicola-strappazzon/clickhouse-dac/actions/workflows/go.yaml)
+[![Test](https://github.com/nicola-strappazzon/clickhouse-dac/actions/workflows/test.yaml/badge.svg?branch=main)](https://github.com/nicola-strappazzon/clickhouse-dac/actions/workflows/test.yaml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/nicola-strappazzon/clickhouse-dac)](https://goreportcard.com/report/github.com/nicola-strappazzon/clickhouse-dac)
 
 A simple way to use pipelines for data transformation: define your databases, tables, materialized views, and **populate** or **backfill** them, all in a single step using a YAML file. Then, deploy everything from the terminal and rollback just as easily, without effort or added complexity. Of course, with this tool you can use it to versioning code, integrate it into a CI/CD, and maybe more.
