@@ -6,6 +6,15 @@ A simple way to use pipelines for data transformation: define your databases, ta
 
 To understand exactly what this tool does, I’ve included a series of curated [examples](https://github.com/nicola-strappazzon/cht/tree/main/examples) that have been reorganized to help you grasp how it works much more clearly.
 
+## Install on macOS
+
+Using [Homebrew](https://brew.sh/):
+
+```bash
+brew tap nicola-strappazzon/tap
+brew install dacfy
+```
+
 ## Install using go
 
 If you have Go installed, you can install the dacfy binary like this:

@@ -53,7 +53,6 @@ brews:
       bin.install "dacfy"
     test: |
       system "#{bin}/dacfy version"
-    dependencies: []
 
 archives:
   - formats: [tar.gz]
