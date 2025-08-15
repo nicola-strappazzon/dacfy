@@ -43,7 +43,6 @@ func (ch *ClickHouse) Connect() (err error) {
 		Protocol: clickhouse.Native,
 		Debug:    false,
 		Auth: clickhouse.Auth{
-			// Database: manifest.Database.Name,
 			Username: pl.Config.User,
 			Password: pl.Config.Password,
 		},
@@ -77,7 +76,17 @@ func (ch *ClickHouse) Connect() (err error) {
 	return ch.Connection.Ping(context.Background())
 }
 
-func (ch *ClickHouse) Execute(in string) error {
+func (ch *ClickHouse) Execute(in string, logger bool) (err error) {
+	if logger {
+		err = ch.ExecuteWitchLogger(in)
+	} else {
+		err = ch.ExecuteWitchOutLogger(in)
+	}
+
+	return err
+}
+
+func (ch *ClickHouse) ExecuteWitchOutLogger(in string) error {
 	ctx := clickhouse.Context(context.Background())
 
 	if err := ch.Connection.Exec(ctx, in); err != nil {

@@ -69,7 +69,7 @@ func Run() error {
 			fmt.Println(query.Statement)
 		}
 
-		if err := ch.Execute(query.Statement); err != nil {
+		if err := ch.Execute(query.Statement, false); err != nil {
 			return err
 		}
 	}

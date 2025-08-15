@@ -39,7 +39,7 @@ func Run() (err error) {
 		fmt.Println(pl.Backfill.Do().DML())
 	}
 
-	err = ch.ExecuteWitchLogger(pl.Backfill.Do().DML())
+	err = ch.Execute(pl.Backfill.Do().DML(), true)
 	fmt.Println("")
 	return err
 }

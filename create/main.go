@@ -33,6 +33,7 @@ func Run() (err error) {
 	queries := []struct {
 		Message   string
 		Statement string
+		Logger    bool
 	}{
 		{
 			Statement: pl.Database.Create().DML(),
@@ -47,6 +48,7 @@ func Run() (err error) {
 		},
 		{
 			Statement: pl.Table.Query.ToString(),
+			Logger:    true,
 		},
 		{
 			Statement: pl.View.Create().DML(),
@@ -67,8 +69,12 @@ func Run() (err error) {
 			fmt.Println(query.Statement)
 		}
 
-		if err = ch.Execute(query.Statement); err != nil {
+		if err := ch.Execute(query.Statement, query.Logger); err != nil {
 			return err
+		}
+
+		if query.Logger {
+			fmt.Println("")
 		}
 	}
 
