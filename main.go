@@ -5,7 +5,6 @@ import (
 	"github.com/nicola-strappazzon/dacfy/clickhouse"
 	"github.com/nicola-strappazzon/dacfy/create"
 	"github.com/nicola-strappazzon/dacfy/drop"
-	"github.com/nicola-strappazzon/dacfy/human"
 	"github.com/nicola-strappazzon/dacfy/pipelines"
 	"github.com/nicola-strappazzon/dacfy/terminal"
 	"github.com/nicola-strappazzon/dacfy/version"
@@ -82,13 +81,5 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 
 func (progressHandler) WriteProgress(in clickhouse.Progress) {
 	tt.New()
-	tt.Write("\r[%.0f%%] %d of %d Rows, %s, %2.2f CPU, %s RAM, Elapsed %s",
-		in.Percent(),
-		in.ReadRows,
-		in.TotalRows,
-		human.Bytes(in.ReadBytes),
-		in.CPU,
-		human.Bytes(in.Memory),
-		human.Duration(in.Elapsed()),
-	)
+	tt.Write(in.ToString())
 }
