@@ -74,12 +74,6 @@ func (b Backfill) Validate() error {
 		return fmt.Errorf("view.to is required")
 	}
 
-	if b.Parent.View.Columns.IsEmpty() {
-		return fmt.Errorf("view.columns must be defined for view %q", b.Parent.View.Name.ToString())
-	} else if b.Parent.Table.Columns.IsNotEmpty() {
-		return fmt.Errorf("table.columns must be defined for table %q", b.Parent.Table.Name.ToString())
-	}
-
 	if b.Parent.View.Query.IsEmpty() {
 		return fmt.Errorf("view.query is required")
 	}
