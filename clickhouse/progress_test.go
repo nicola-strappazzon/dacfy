@@ -74,7 +74,7 @@ func TestToStringWithTotalRows(t *testing.T) {
 	out := p.ToString()
 
 	assert.True(t, strings.HasPrefix(out, "\r\033[2K"))
-	assert.Contains(t, out, "[50%%] ")
+	assert.Contains(t, out, "[50%] ")
 	assert.Contains(t, out, "50 of 100")
 	assert.Contains(t, out, "Rows, ")
 	assert.Contains(t, out, "GiB")

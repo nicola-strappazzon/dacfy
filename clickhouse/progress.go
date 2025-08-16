@@ -71,7 +71,7 @@ func (p Progress) ToString() string {
 	if p.TotalRows > 0 {
 		p.Text.WriteString("[")
 		p.Text.WriteString(strconv.Itoa(p.Percent()))
-		p.Text.WriteString("%%] ")
+		p.Text.WriteString("%] ")
 	}
 
 	fmt.Fprintf(&p.Text, "%d ", p.ReadRows)
