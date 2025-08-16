@@ -2,7 +2,6 @@ package terminal
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 )
 
@@ -27,8 +26,8 @@ func (t *Terminal) LineErase() {
 	t.Flush()
 }
 
-func (t *Terminal) Write(format string, a ...any) {
+func (t *Terminal) Write(in string) {
 	t.LineErase()
-	t.Output.WriteString(fmt.Sprintf(format, a...))
+	t.Output.WriteString(in)
 	t.Flush()
 }
