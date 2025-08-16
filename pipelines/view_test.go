@@ -70,6 +70,7 @@ func TestView_Create(t *testing.T) {
 	assert.True(t, v.View.IsValidView())
 	assert.False(t, v.View.IsValidViewMaterialized())
 	assert.False(t, v.View.IsValidViewMaterializedPopulateBackFill())
+	assert.NoError(t, v.View.Validate())
 	assert.Equal(t, "CREATE VIEW IF NOT EXISTS foo.bar AS SELECT now()", v.View.Create().DML())
 }
 
@@ -93,6 +94,7 @@ func TestView_Create_Materialized(t *testing.T) {
 	assert.False(t, v.View.IsValidView())
 	assert.True(t, v.View.IsValidViewMaterialized())
 	assert.False(t, v.View.IsValidViewMaterializedPopulateBackFill())
+	assert.NoError(t, v.View.Validate())
 }
 
 func TestView_Create_Materialized_Populate_BackFill(t *testing.T) {
@@ -114,4 +116,5 @@ func TestView_Create_Materialized_Populate_BackFill(t *testing.T) {
 	assert.False(t, v.View.IsValidView())
 	assert.False(t, v.View.IsValidViewMaterialized())
 	assert.True(t, v.View.IsValidViewMaterializedPopulateBackFill())
+	assert.NoError(t, v.View.Validate())
 }

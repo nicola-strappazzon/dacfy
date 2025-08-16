@@ -137,12 +137,14 @@ func (v View) Validate() error {
 		return fmt.Errorf("view.query is required")
 	}
 
-	if cols, err := v.PartitionBy.NotIn(v.Parent.Table.Columns.ToArray()); err {
-		return fmt.Errorf("field(s) %v in view.partition_by not found in columns for view %s", cols, v.Name.ToString())
-	}
+	if v.Parent.Table.Columns.IsNotEmpty() {
+		if cols, err := v.PartitionBy.NotIn(v.Parent.Table.Columns.ToArray()); err {
+			return fmt.Errorf("field(s) %v in view.partition_by not found in columns for view %s", cols, v.Name.ToString())
+		}
 
-	if cols, err := v.OrderBy.NotIn(v.Parent.Table.Columns.ToArray()); err {
-		return fmt.Errorf("field(s) %v in view.order_by not found in columns for view %s", cols, v.Name.ToString())
+		if cols, err := v.OrderBy.NotIn(v.Parent.Table.Columns.ToArray()); err {
+			return fmt.Errorf("field(s) %v in view.order_by not found in columns for view %s", cols, v.Name.ToString())
+		}
 	}
 
 	// Validate definition settings:
