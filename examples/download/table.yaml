@@ -20,4 +20,4 @@ table:
       25,
       rand() % 100000000
     FROM system.numbers
-    LIMIT 5000
+    LIMIT 10000000

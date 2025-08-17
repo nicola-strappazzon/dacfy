@@ -72,6 +72,27 @@ func TestView_Create(t *testing.T) {
 	assert.False(t, v.View.IsValidViewMaterializedPopulateBackFill())
 	assert.NoError(t, v.View.Validate())
 	assert.Equal(t, "CREATE VIEW IF NOT EXISTS foo.bar AS SELECT now()", v.View.Create().DML())
+
+	v = pipelines.Pipelines{
+		Database: pipelines.Database{
+			Name: pipelines.Name("foo"),
+		},
+		View: pipelines.View{
+			Name:        pipelines.Name("bar"),
+			Delete:      true,
+			Populate:    "backfill",
+			Engine:      "SummingMergeTree",
+			PartitionBy: columns.Array{columns.Name("toYYYYMM(created_at)")},
+			OrderBy:     columns.Array{columns.Name("created_at")},
+			Query:       "SELECT now() AS created_at",
+		},
+	}
+	v.SetParents()
+
+	assert.True(t, v.View.IsValidView())
+	assert.False(t, v.View.IsValidViewMaterialized())
+	assert.False(t, v.View.IsValidViewMaterializedPopulateBackFill())
+	assert.NoError(t, v.View.Validate())
 }
 
 func TestView_Create_Materialized(t *testing.T) {

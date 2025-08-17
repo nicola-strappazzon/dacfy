@@ -46,18 +46,6 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 
 				pl.SetParents()
 
-				if err = pl.Database.Validate(); err != nil {
-					return err
-				}
-
-				if err = pl.Table.Validate(); err != nil {
-					return err
-				}
-
-				if err = pl.View.Validate(); err != nil {
-					return err
-				}
-
 				return ch.Connect()
 			}
 			return nil

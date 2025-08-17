@@ -30,6 +30,18 @@ func NewCommand() *cobra.Command {
 }
 
 func Run() (err error) {
+	if err = pl.Database.Validate(); err != nil {
+		return err
+	}
+
+	if err = pl.Table.Validate(); err != nil {
+		return err
+	}
+
+	if err = pl.View.Validate(); err != nil {
+		return err
+	}
+
 	queries := []struct {
 		Message   string
 		Statement string
