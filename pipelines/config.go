@@ -1,6 +1,7 @@
 package pipelines
 
 type Config struct {
+	Debug    bool   // Enable debug mode.
 	Host     string // ClickHouse server host and port.
 	Password string // Password for the ClickHouse server.
 	Pipe     string // Path to the pipelines file.

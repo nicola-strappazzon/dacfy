@@ -151,23 +151,16 @@ func (v View) Validate() error {
 		return fmt.Errorf("view.to %q is invalid; must start with a letter and contain only letters, digits or underscores (max 255 characters)", v.To.ToString())
 	}
 
-	// Validate definition settings:
-	// =============================
-	// | Materialized | Populate | To    | Engine | PartitionBy | OrderBy |
-	// |--------------|----------|-------|--------|-------------|---------|
-	// | false        | false    | false | false  | false       | false   |
-	// | true         | false    | false | true   | true        | true    |
-	// | true         | true     | true  | false  | false       | false   |
-	//
-
-	fmt.Println(
-		"Materialized:", v.Materialized,
-		"Populate:", v.Populate.IsEmpty(),
-		"To:", v.To.IsEmpty(),
-		"Engine:", v.Engine.IsEmpty(),
-		"PartitionBy:", v.PartitionBy.IsEmpty(),
-		"OrderBy:", v.OrderBy.IsEmpty(),
-		"Columns:", v.Columns.IsEmpty())
+	if v.Parent.Config.Debug {
+		fmt.Println("Debug:",
+			"Materialized:", v.Materialized,
+			", Populate:", v.Populate.IsEmpty(),
+			", To:", v.To.IsEmpty(),
+			", Engine:", v.Engine.IsEmpty(),
+			", PartitionBy:", v.PartitionBy.IsEmpty(),
+			", OrderBy:", v.OrderBy.IsEmpty(),
+			", Columns:", v.Columns.IsEmpty())
+	}
 
 	return nil
 }
