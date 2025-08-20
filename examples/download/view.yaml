@@ -4,7 +4,6 @@ database:
 view:
   name: download_daily_mv
   delete: true
-  materialized: true
   engine: SummingMergeTree
   partition_by:
     - toYYYYMM(day)

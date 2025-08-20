@@ -70,8 +70,12 @@ func (b Backfill) Validate() error {
 		return fmt.Errorf("view.populate is not 'backfill', maybe it's just a view, check the documentation")
 	}
 
+	if b.Parent.View.Name.IsNotValid() {
+		return fmt.Errorf("view.name %q is invalid; must start with a letter and contain only letters, digits or underscores (max 255 characters)", b.Parent.View.Name.ToString())
+	}
+
 	if b.Parent.View.To.IsNotValid() {
-		return fmt.Errorf("view.to is required")
+		return fmt.Errorf("view.to %q is invalid; must start with a letter and contain only letters, digits or underscores (max 255 characters)", b.Parent.View.To.ToString())
 	}
 
 	if b.Parent.View.Query.IsEmpty() {

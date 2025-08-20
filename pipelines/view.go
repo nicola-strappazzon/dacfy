@@ -147,58 +147,20 @@ func (v View) Validate() error {
 		}
 	}
 
-	// Validate definition settings:
-	// =============================
-	// | Case | Materialized | Populate | To    | Engine | PartitionBy | OrderBy | Columns |
-	// |------|--------------|----------|-------|--------|-------------|---------|---------|
-	// | 1    | false        | false    | false | false  | false       | false   | false   |
-	// | 2    | true         | false    | false | true   | true        | true    | false   |
-	// | 3    | true         | true     | true  | false  | false       | false   | false   |
-	//
-	// Case 1:
-	if v.IsValidView() {
-		return nil
+	if v.Materialized && v.Parent.View.To.IsNotEmpty() && v.Parent.View.To.IsNotValid() {
+		return fmt.Errorf("view.to %q is invalid; must start with a letter and contain only letters, digits or underscores (max 255 characters)", v.To.ToString())
 	}
 
-	// Case 2:
-	if v.IsValidViewMaterialized() {
-		return nil
+	if v.Parent.Config.Debug {
+		fmt.Println("Debug:",
+			"Materialized:", v.Materialized,
+			", Populate:", v.Populate.IsEmpty(),
+			", To:", v.To.IsEmpty(),
+			", Engine:", v.Engine.IsEmpty(),
+			", PartitionBy:", v.PartitionBy.IsEmpty(),
+			", OrderBy:", v.OrderBy.IsEmpty(),
+			", Columns:", v.Columns.IsEmpty())
 	}
 
-	// Case 3:
-	if v.IsValidViewMaterializedPopulateBackFill() {
-		return nil
-	}
-
-	return fmt.Errorf("invalid view combination")
-}
-
-func (v View) IsValidView() bool {
-	return !v.Materialized &&
-		v.Populate.IsEmpty() &&
-		v.To.IsEmpty() &&
-		v.Engine.IsEmpty() &&
-		v.PartitionBy.IsEmpty() &&
-		v.OrderBy.IsEmpty() &&
-		v.Columns.IsEmpty()
-}
-
-func (v View) IsValidViewMaterialized() bool {
-	return v.Materialized &&
-		v.Populate.IsEmpty() &&
-		v.To.IsEmpty() &&
-		v.Engine.IsNotEmpty() &&
-		v.PartitionBy.IsNotEmpty() &&
-		v.OrderBy.IsNotEmpty() &&
-		v.Columns.IsEmpty()
-}
-
-func (v View) IsValidViewMaterializedPopulateBackFill() bool {
-	return v.Materialized &&
-		v.Populate.IsNotEmpty() &&
-		v.To.IsNotEmpty() &&
-		v.Engine.IsEmpty() &&
-		v.PartitionBy.IsEmpty() &&
-		v.OrderBy.IsEmpty() &&
-		v.Columns.IsEmpty()
+	return nil
 }
