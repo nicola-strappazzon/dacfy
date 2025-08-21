@@ -45,6 +45,10 @@ func (c Array) IsNotEmpty() bool {
 func (c Array) NotIn(in Array) ([]string, bool) {
 	var d = []string{}
 
+	if c.IsEmpty() {
+		return d, false
+	}
+
 	for _, x := range c {
 		f := false
 		for _, y := range in {
