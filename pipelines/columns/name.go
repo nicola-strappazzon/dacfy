@@ -15,14 +15,14 @@ func (n Name) Clear() (out string) {
 		return out
 	}
 
-	if ok, arg := n.ExtractArgument(); ok {
+	if ok, arg := n.GetArgument(); ok {
 		return arg
 	}
 
 	return n.ToString()
 }
 
-func (n Name) ExtractArgument() (bool, string) {
+func (n Name) GetArgument() (bool, string) {
 	re := regexp.MustCompile(`^(?:\w+\()?([a-zA-Z_][a-zA-Z0-9_]*)\)?$`)
 
 	match := re.FindStringSubmatch(n.ToString())
