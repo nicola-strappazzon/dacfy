@@ -110,16 +110,22 @@ func (t Table) Validate() error {
 		return fmt.Errorf("table.engine is required for table %q", t.Name.ToString())
 	}
 
-	if cols, err := t.PartitionBy.NotIn(t.Columns.ToArray()); err {
-		return fmt.Errorf("field(s) %v in table.partition_by not found in columns for table %s", cols, t.Name.ToString())
+	if t.PartitionBy.IsNotEmpty() {
+		if cols, err := t.PartitionBy.NotIn(t.Columns.ToArray()); err {
+			return fmt.Errorf("field(s) %v in table.partition_by not found in columns for table %s", cols, t.Name.ToString())
+		}
 	}
 
-	if cols, err := t.PrimaryKey.NotIn(t.Columns.ToArray()); err {
-		return fmt.Errorf("field(s) %v in table.primary_key not found in columns for table %s", cols, t.Name.ToString())
+	if t.PrimaryKey.IsNotEmpty() {
+		if cols, err := t.PrimaryKey.NotIn(t.Columns.ToArray()); err {
+			return fmt.Errorf("field(s) %v in table.primary_key not found in columns for table %s", cols, t.Name.ToString())
+		}
 	}
 
-	if cols, err := t.OrderBy.NotIn(t.Columns.ToArray()); err {
-		return fmt.Errorf("field(s) %v in table.order_by not found in columns for table %s", cols, t.Name.ToString())
+	if t.OrderBy.IsNotEmpty() {
+		if cols, err := t.OrderBy.NotIn(t.Columns.ToArray()); err {
+			return fmt.Errorf("field(s) %v in table.order_by not found in columns for table %s", cols, t.Name.ToString())
+		}
 	}
 
 	for _, s := range t.Settings {
