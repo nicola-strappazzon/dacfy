@@ -18,8 +18,24 @@ func (c Array) Join() string {
 	return strings.Join(c.ToArrayString())
 }
 
+func (c Array) First() Name {
+	if c.Count() == 1 {
+		return c[0]
+	}
+
+	return Name("")
+}
+
+func (c Array) Count() int {
+	return len(c)
+}
+
 func (c Array) IsEmpty() bool {
-	return len(c) == 0
+	if c.Count() == 1 && c.First().Clear() == "" {
+		return true
+	}
+
+	return c.Count() == 0
 }
 
 func (c Array) IsNotEmpty() bool {

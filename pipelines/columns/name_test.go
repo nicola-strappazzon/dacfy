@@ -27,6 +27,25 @@ func TestName_ToString(t *testing.T) {
 	}
 }
 
+func TestName_IsTuple(t *testing.T) {
+	cases := []struct {
+		name     string
+		input    columns.Name
+		expected bool
+	}{
+		{"empty", columns.Name(""), false},
+		{"is", columns.Name("tuple()"), true},
+		{"not", columns.Name("foo"), false},
+		{"function style", columns.Name("toYYYYMM(created_at)"), false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, tc.input.IsTuple())
+		})
+	}
+}
+
 func TestName_Clear(t *testing.T) {
 	cases := []struct {
 		name     string
@@ -41,6 +60,7 @@ func TestName_Clear(t *testing.T) {
 		{"empty", columns.Name(""), ""},
 		{"no parentheses", columns.Name("col123"), "col123"},
 		{"invalid characters", columns.Name("col-123"), "col-123"},
+		{"empty function", columns.Name("tuple()"), ""},
 	}
 
 	for _, tc := range cases {
