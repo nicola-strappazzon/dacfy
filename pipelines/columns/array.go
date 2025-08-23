@@ -31,11 +31,7 @@ func (c Array) Count() int {
 }
 
 func (c Array) IsEmpty() bool {
-	if c.Count() == 1 && c.First().Clear() == "" {
-		return true
-	}
-
-	return c.Count() == 0
+	return (c.Count() == 0) || (c.Count() == 1 && c.First().Clear() == "")
 }
 
 func (c Array) IsNotEmpty() bool {
