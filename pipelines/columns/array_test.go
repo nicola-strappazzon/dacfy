@@ -9,19 +9,51 @@ import (
 )
 
 func TestArray_IsEmpty_And_IsNotEmpty(t *testing.T) {
-	t.Run("empty array", func(t *testing.T) {
-		var arr columns.Array
-		assert.True(t, arr.IsEmpty())
-		assert.False(t, arr.IsNotEmpty())
-	})
+	cases := []struct {
+		name       string
+		array      columns.Array
+		isEmpty    bool
+		isNotEmpty bool
+	}{
+		{
+			name:       "empty array case 1",
+			array:      columns.Array{},
+			isEmpty:    true,
+			isNotEmpty: false,
+		},
+		{
+			name: "empty array case 2",
+			array: columns.Array{
+				columns.Name("tuple()"),
+			},
+			isEmpty:    true,
+			isNotEmpty: false,
+		},
+		{
+			name: "non-empty array case 1",
+			array: columns.Array{
+				columns.Name("foo"),
+			},
+			isEmpty:    false,
+			isNotEmpty: true,
+		},
+		{
+			name: "non-empty array case 2",
+			array: columns.Array{
+				columns.Name("tuple()"),
+				columns.Name("foo"),
+			},
+			isEmpty:    false,
+			isNotEmpty: true,
+		},
+	}
 
-	t.Run("non-empty array", func(t *testing.T) {
-		arr := columns.Array{
-			columns.Name("a"),
-		}
-		assert.False(t, arr.IsEmpty())
-		assert.True(t, arr.IsNotEmpty())
-	})
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			assert.Equal(t, c.isEmpty, c.array.IsEmpty())
+			assert.Equal(t, c.isNotEmpty, c.array.IsNotEmpty())
+		})
+	}
 }
 
 func TestArray_ToArrayString(t *testing.T) {
