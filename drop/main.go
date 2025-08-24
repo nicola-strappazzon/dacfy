@@ -17,14 +17,11 @@ func NewCommand() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:     "drop",
 		Short:   "Remove tables and materialized views as defined in the pipelines.",
-		Example: `dacfy drop --pipe=foo.yaml`,
+		Example: `dacfy drop foo.yaml`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return Run()
 		},
 	}
-
-	cmd.Flags().StringVar(&pl.Config.Pipe, "pipe", "", "Path to the pipelines file.")
-	cmd.MarkFlagRequired("pipe")
 
 	return cmd
 }

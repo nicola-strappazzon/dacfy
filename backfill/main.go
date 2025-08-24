@@ -16,14 +16,11 @@ func NewCommand() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:     "backfill",
 		Short:   "Backfill tables as defined in the pipelines.",
-		Example: `dacfy backfill --pipe=foo.yaml`,
+		Example: `dacfy backfill foo.yaml`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return Run()
 		},
 	}
-
-	cmd.Flags().StringVar(&pl.Config.Pipe, "pipe", "", "Path to the pipelines file.")
-	cmd.MarkFlagRequired("pipe")
 
 	return cmd
 }
