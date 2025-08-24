@@ -8,6 +8,7 @@ import (
 	"github.com/nicola-strappazzon/dacfy/create"
 	"github.com/nicola-strappazzon/dacfy/drop"
 	"github.com/nicola-strappazzon/dacfy/pipelines"
+	"github.com/nicola-strappazzon/dacfy/query"
 	"github.com/nicola-strappazzon/dacfy/terminal"
 	"github.com/nicola-strappazzon/dacfy/version"
 
@@ -67,9 +68,10 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 	rootCmd.PersistentFlags().BoolVar(&pl.Config.TLS, "tls", false, "Enable TLS for the ClickHouse server.")
 	rootCmd.PersistentFlags().BoolVar(&pl.Config.SQL, "sql", false, "Show SQL Statement.")
 	rootCmd.PersistentFlags().BoolVar(&pl.Config.Debug, "debug", false, "Enable debug mode.")
+	rootCmd.AddCommand(backfill.NewCommand())
 	rootCmd.AddCommand(create.NewCommand())
 	rootCmd.AddCommand(drop.NewCommand())
-	rootCmd.AddCommand(backfill.NewCommand())
+	rootCmd.AddCommand(query.NewCommand())
 	rootCmd.AddCommand(version.NewCommand())
 
 	rootCmd.Execute()

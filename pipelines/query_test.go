@@ -28,7 +28,7 @@ func TestQuery_ToString(t *testing.T) {
 	}
 }
 
-func TestQuery_IsEmpty(t *testing.T) {
+func TestQuery_IsEmpty_IsNotEmpty(t *testing.T) {
 	cases := []struct {
 		name  string
 		input pipelines.Query
@@ -42,6 +42,7 @@ func TestQuery_IsEmpty(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.empty, tc.input.IsEmpty())
+			assert.Equal(t, !tc.empty, tc.input.IsNotEmpty())
 		})
 	}
 }
