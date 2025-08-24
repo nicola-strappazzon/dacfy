@@ -6,8 +6,8 @@ This example demonstrates how to create a materialized view without explicitly d
 
 ```bash
 cd examples/download/
-dacfy create --pipe=table.yaml
-dacfy create --pipe=view.yaml
+dacfy create table.yaml
+dacfy create view.yaml
 ```
 
 > [!NOTE]  

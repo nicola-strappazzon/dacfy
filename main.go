@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/nicola-strappazzon/dacfy/backfill"
 	"github.com/nicola-strappazzon/dacfy/clickhouse"
 	"github.com/nicola-strappazzon/dacfy/create"
@@ -39,7 +41,9 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 			}
 		},
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
-			if cmd.Flags().Changed("pipe") {
+			if pl.Config.Pipe == "" && len(args) > 0 {
+				pl.Config.Pipe = args[0]
+
 				if err = pl.Load(pl.Config.Pipe); err != nil {
 					return err
 				}
@@ -48,6 +52,10 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 
 				return ch.Connect()
 			}
+			if pl.Config.Pipe == "" {
+				return fmt.Errorf("missing YAML file")
+			}
+
 			return nil
 		},
 		SilenceUsage: true,
@@ -58,7 +66,6 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 	rootCmd.PersistentFlags().StringVar(&pl.Config.Password, "password", "", "Password for the ClickHouse server.")
 	rootCmd.PersistentFlags().BoolVar(&pl.Config.TLS, "tls", false, "Enable TLS for the ClickHouse server.")
 	rootCmd.PersistentFlags().BoolVar(&pl.Config.SQL, "sql", false, "Show SQL Statement.")
-	rootCmd.PersistentFlags().StringVar(&pl.Config.Pipe, "pipe", "", "Path to the pipelines file.")
 	rootCmd.PersistentFlags().BoolVar(&pl.Config.Debug, "debug", false, "Enable debug mode.")
 	rootCmd.AddCommand(create.NewCommand())
 	rootCmd.AddCommand(drop.NewCommand())

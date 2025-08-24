@@ -32,11 +32,11 @@ This setup can be adapted for use cases like engagement tracking, revenue analyt
 
 ```bash
 cd examples/splitview/
-dacfy create --pipe events.yaml
-dacfy create --pipe agg_user_daily.yaml
-dacfy create --pipe agg_revenue_country.yaml
-dacfy create --pipe mv_user_daily.yaml
-dacfy create --pipe mv_revenue_country.yaml
+dacfy create events.yaml
+dacfy create agg_user_daily.yaml
+dacfy create agg_revenue_country.yaml
+dacfy create mv_user_daily.yaml
+dacfy create mv_revenue_country.yaml
 ```
 
 > [!NOTE]  

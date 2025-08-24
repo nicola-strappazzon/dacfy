@@ -6,9 +6,9 @@ This example shows how to create a materialized view by defining its target tabl
 
 ```bash
 cd examples/wikistat/
-dacfy create --pipe=table.yaml
-dacfy create --pipe=view.yaml
-dacfy backfill --pipe=view.yaml
+dacfy create table.yaml
+dacfy create view.yaml
+dacfy backfill view.yaml
 ```
 
 > [!NOTE]  

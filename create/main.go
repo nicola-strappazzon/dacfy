@@ -17,14 +17,11 @@ func NewCommand() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:     "create",
 		Short:   "Create tables and materialized views as defined in the pipelines.",
-		Example: `dacfy create --pipe=foo.yaml`,
+		Example: `dacfy create foo.yaml`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return Run()
 		},
 	}
-
-	cmd.Flags().StringVar(&pl.Config.Pipe, "pipe", "", "Path to the pipelines file.")
-	cmd.MarkFlagRequired("pipe")
 
 	return cmd
 }
