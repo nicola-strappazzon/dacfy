@@ -132,6 +132,15 @@ func (ch *ClickHouse) GatherSystemProcess() error {
 	return nil
 }
 
+func (ch *ClickHouse) DatabaseExists(in string) (out bool) {
+	ch.Connection.QueryRow(
+		clickhouse.Context(context.Background()),
+		fmt.Sprintf("SELECT true FROM system.databases WHERE name = '%s';", in),
+	).Scan(&out)
+
+	return out
+}
+
 func (ch *ClickHouse) SetLogger(in LoggerProgress) {
 	loggerProgress = in
 }
