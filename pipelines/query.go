@@ -15,6 +15,10 @@ func (q Query) IsEmpty() bool {
 	return strings.IsEmpty(q.ToString())
 }
 
+func (q Query) IsNotEmpty() bool {
+	return !q.IsEmpty()
+}
+
 func (q Query) Minify() string {
 	return minify.Minify(q.ToString())
 }
