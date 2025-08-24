@@ -43,8 +43,10 @@ func Run() (err error) {
 		Message   string
 		Statement string
 		Logger    bool
+		Ignore    bool
 	}{
 		{
+			Ignore:    ch.DatabaseExists(pl.Database.Name.ToString()),
 			Statement: pl.Database.Create().DML(),
 			Message:   fmt.Sprintf("Create database: %s", pl.Database.Name),
 		},
@@ -67,6 +69,10 @@ func Run() (err error) {
 
 	for _, query := range queries {
 		if strings.IsEmpty(query.Statement) {
+			continue
+		}
+
+		if query.Ignore {
 			continue
 		}
 
