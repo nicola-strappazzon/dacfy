@@ -39,6 +39,16 @@ builds:
     ldflags:
       - -s -w -X github.com/nicola-strappazzon/dacfy/version.VERSION=v{{.Version}}
 
+nfpms:
+  - file_name_template: '{{ .ProjectName }}_{{ .Arch }}'
+    homepage:  https://github.com/nicola-strappazzon/dacfy
+    description: "dacfy is a lightweight tool that lets you manage ClickHouse database objects as code."
+    license: GPL
+    vendor: "Nicola Strappazzon"
+    formats:
+      - deb
+      - rpm
+
 homebrew_casks:
   - name: dacfy
     repository:
