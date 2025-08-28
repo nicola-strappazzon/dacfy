@@ -24,5 +24,9 @@ go install github.com/nicola-strappazzon/dacfy@latest
 
 The binary will be placed in your `GOBIN` directory, which defaults to `~/go/bin`. Depending on how Go is installed, this directory may or may not be in your `PATH`.
 
+## Install on Windows
+
+A Windows build is currently unavailable, but the Linux build works fine under WSL.
+
 > [!WARNING]
 > This project is under active development and may be unstable. Use at your own risk.
