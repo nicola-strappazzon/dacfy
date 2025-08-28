@@ -25,6 +25,24 @@ go install github.com/nicola-strappazzon/dacfy@latest
 
 The binary will be placed in your `GOBIN` directory, which defaults to `~/go/bin`. Depending on how Go is installed, this directory may or may not be in your `PATH`.
 
+## Install on Linux - DEB
+
+This method can be used on Debian, Ubuntu, and related distributions. The example below is for Intel/AMD systems; for an ARM architecture, replace "amd64" with "arm64" in both lines.
+
+```bash
+curl -LO https://github.com/nicola-strappazzon/dacfy/releases/latest/download/dacfy_amd64.deb
+sudo apt install ./dacfy_amd64.deb
+```
+
+## Install on Linux - RPM
+
+This method can be used on RHEL, CentOS, Fedora, Amazon Linux, SUSE, Mandriva, Oracle Linux, etc. The example below is for Intel/AMD systems; for an ARM architecture, replace “amd64” with “arm64” in both lines.
+
+```bash
+curl -LO https://github.com/nicola-strappazzon/dacfy/releases/latest/download/dacfy_amd64.rpm
+sudo rpm -Uvh dacfy_amd64.rpm
+```
+
 ## Install on Windows
 
 A Windows build is currently unavailable, but the Linux build works fine under WSL.
