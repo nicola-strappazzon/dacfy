@@ -14,6 +14,7 @@ type Table struct {
 	Engine      Engine          `yaml:"engine"`
 	Name        Name            `yaml:"name"`
 	OrderBy     columns.Array   `yaml:"order_by"`
+	PartitionID string          `yaml:"-"`
 	PartitionBy columns.Array   `yaml:"partition_by"`
 	PrimaryKey  columns.Array   `yaml:"primary_key"`
 	Query       Query           `yaml:"query"`
@@ -81,6 +82,90 @@ func (t Table) Drop() Table {
 	t.Statement.WriteString(instance.Database.Name.ToString())
 	t.Statement.WriteString(".")
 	t.Statement.WriteString(t.Name.ToString())
+
+	return t
+}
+
+func (t Table) CopyFrom(in Table) Table {
+	t.Statement = strings.Builder{}
+	t.Statement.WriteString("CREATE TABLE IF NOT EXISTS ")
+	t.Statement.WriteString(instance.Database.Name.ToString())
+	t.Statement.WriteString(".")
+	t.Statement.WriteString(t.Name.ToString())
+	t.Statement.WriteString(" AS ")
+	t.Statement.WriteString(instance.Database.Name.ToString())
+	t.Statement.WriteString(".")
+	t.Statement.WriteString(in.Name.ToString())
+
+	return t
+}
+
+func (t Table) Partitions() Table {
+	t.Statement = strings.Builder{}
+	t.Statement.WriteString("SELECT partition_key FROM system.tables WHERE database = '")
+	t.Statement.WriteString(instance.Database.Name.ToString())
+	t.Statement.WriteString("' AND name = '")
+	t.Statement.WriteString(t.Name.ToString())
+	t.Statement.WriteString("'")
+
+	return t
+}
+
+func (t Table) RowsOnPartition() Table {
+	t.Statement = strings.Builder{}
+	t.Statement.WriteString("SELECT sum(rows) FROM system.parts WHERE database='")
+	t.Statement.WriteString(instance.Database.Name.ToString())
+	t.Statement.WriteString("' AND table='")
+	t.Statement.WriteString(t.Name.ToString())
+	t.Statement.WriteString("' AND active AND partition='")
+	t.Statement.WriteString(t.PartitionID)
+	t.Statement.WriteString("'")
+
+	return t
+}
+
+func (t Table) AttachPartitionTo(in Table) Table {
+	t.Statement = strings.Builder{}
+	t.Statement.WriteString("ALTER TABLE ")
+	t.Statement.WriteString(instance.Database.Name.ToString())
+	t.Statement.WriteString(".")
+	t.Statement.WriteString(t.Name.ToString())
+	t.Statement.WriteString(" ATTACH PARTITION '")
+	t.Statement.WriteString(t.PartitionID)
+	t.Statement.WriteString("' FROM ")
+	t.Statement.WriteString(instance.Database.Name.ToString())
+	t.Statement.WriteString(".")
+	t.Statement.WriteString(in.Name.ToString())
+
+	return t
+}
+
+func (t Table) DetachPartition() Table {
+	t.Statement = strings.Builder{}
+	t.Statement.WriteString("ALTER TABLE ")
+	t.Statement.WriteString(instance.Database.Name.ToString())
+	t.Statement.WriteString(".")
+	t.Statement.WriteString(t.Name.ToString())
+	t.Statement.WriteString(" DETACH PARTITION '")
+	t.Statement.WriteString(t.PartitionID)
+	t.Statement.WriteString("'")
+
+	return t
+}
+
+func (t Table) InsertIntoSelectFrom(in Table) Table {
+	t.Statement = strings.Builder{}
+	t.Statement.WriteString("INSERT INTO ")
+	t.Statement.WriteString(instance.Database.Name.ToString())
+	t.Statement.WriteString(".")
+	t.Statement.WriteString(t.Name.ToString())
+	t.Statement.WriteString(" SELECT * FROM ")
+	t.Statement.WriteString(instance.Database.Name.ToString())
+	t.Statement.WriteString(".")
+	t.Statement.WriteString(in.Name.ToString())
+	t.Statement.WriteString(" WHERE _partition_id='")
+	t.Statement.WriteString(t.PartitionID)
+	t.Statement.WriteString("'")
 
 	return t
 }
