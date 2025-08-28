@@ -42,6 +42,10 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 			}
 		},
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
+			if len(args) == 0 {
+				return
+			}
+
 			if pl.Config.Pipe == "" && len(args) > 0 {
 				pl.Config.Pipe = args[0]
 
@@ -57,7 +61,7 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 				return fmt.Errorf("missing YAML file")
 			}
 
-			return nil
+			return
 		},
 		SilenceUsage: true,
 	}
