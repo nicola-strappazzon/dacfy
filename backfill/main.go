@@ -30,7 +30,7 @@ func Run() (err error) {
 		return err
 	}
 
-	fmt.Println("--> Starting to backfill the table:", pl.View.To)
+	fmt.Printf("--> Starting backfill from view %s into table %s.\n\r", pl.View.Name, pl.View.To)
 
 	if pl.Config.SQL {
 		fmt.Println(pl.Backfill.Do().DML())
