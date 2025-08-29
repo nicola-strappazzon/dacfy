@@ -27,7 +27,7 @@ The binary will be placed in your `GOBIN` directory, which defaults to `~/go/bin
 
 ## Install on Linux - DEB
 
-This method can be used on Debian, Ubuntu, and related distributions. The example below is for Intel/AMD systems; for an ARM architecture, replace "amd64" with "arm64" in both lines.
+This method works on Debian, Ubuntu, and related distributions. The example below is for Intel/AMD systems. For ARM architectures, replace "amd64" with "arm64" in both commands.
 
 ```bash
 curl -LO https://github.com/nicola-strappazzon/dacfy/releases/latest/download/dacfy_amd64.deb
@@ -36,7 +36,7 @@ sudo apt install ./dacfy_amd64.deb
 
 ## Install on Linux - RPM
 
-This method can be used on RHEL, CentOS, Fedora, Amazon Linux, SUSE, Mandriva, Oracle Linux, etc. The example below is for Intel/AMD systems; for an ARM architecture, replace “amd64” with “arm64” in both lines.
+This method works on RHEL, CentOS, Fedora, Amazon Linux, SUSE, Mandriva, Oracle Linux, and similar distributions. The example below is for Intel/AMD systems. For ARM architectures, replace "amd64" with "arm64" in both commands.
 
 ```bash
 curl -LO https://github.com/nicola-strappazzon/dacfy/releases/latest/download/dacfy_amd64.rpm
