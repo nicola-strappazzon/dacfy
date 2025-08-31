@@ -85,6 +85,16 @@ func (t Table) Drop() Table {
 	return t
 }
 
+func (t Table) Truncate() Table {
+	t.Statement = strings.Builder{}
+	t.Statement.WriteString("TRUNCATE TABLE ")
+	t.Statement.WriteString(instance.Database.Name.ToString())
+	t.Statement.WriteString(".")
+	t.Statement.WriteString(t.Name.ToString())
+
+	return t
+}
+
 func (t Table) DML() string {
 	return t.Statement.String()
 }
