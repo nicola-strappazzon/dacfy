@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/nicola-strappazzon/dacfy/backfill"
 	"github.com/nicola-strappazzon/dacfy/clickhouse"
@@ -78,7 +79,9 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 	rootCmd.AddCommand(query.NewCommand())
 	rootCmd.AddCommand(version.NewCommand())
 
-	rootCmd.Execute()
+	if err := rootCmd.Execute(); err != nil {
+		os.Exit(1)
+	}
 }
 
 func (progressHandler) WriteProgress(in clickhouse.Progress) {
