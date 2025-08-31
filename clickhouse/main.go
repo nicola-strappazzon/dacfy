@@ -107,10 +107,7 @@ func (ch *ClickHouse) ExecuteWitchLogger(in string) error {
 			ch.Progress.SetReadBytes(p.Bytes)
 			ch.Progress.SetTotalRows(p.TotalRows)
 
-			go func() {
-				ch.GatherSystemProcess()
-				loggerProgress.WriteProgress(ch.Progress)
-			}()
+			go ch.WriteProcess()
 		}),
 	)
 
@@ -118,7 +115,14 @@ func (ch *ClickHouse) ExecuteWitchLogger(in string) error {
 		return err
 	}
 
+	ch.WriteProcess()
+
 	return nil
+}
+
+func (ch *ClickHouse) WriteProcess() {
+	ch.GatherSystemProcess()
+	loggerProgress.WriteProgress(ch.Progress)
 }
 
 func (ch *ClickHouse) GatherSystemProcess() error {
