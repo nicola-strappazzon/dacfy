@@ -53,7 +53,7 @@ func (b Backfill) Do() Backfill {
 	return b
 }
 
-func (b Backfill) DML() string {
+func (b Backfill) SQL() string {
 	return b.Statement.String()
 }
 

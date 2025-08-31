@@ -41,11 +41,11 @@ func Run() (err error) {
 		Progress  bool
 	}{
 		{
-			Statement: pl.Table.Truncate().DML(),
+			Statement: pl.Table.Truncate().SQL(),
 			Message:   fmt.Sprintf("Truncate table: %s.", pl.View.To),
 		},
 		{
-			Statement: pl.Backfill.Do().DML(),
+			Statement: pl.Backfill.Do().SQL(),
 			Message:   fmt.Sprintf("Starting backfill from view %s into table %s.", pl.View.Name, pl.View.To),
 			Progress:  true,
 		},

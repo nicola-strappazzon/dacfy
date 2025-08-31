@@ -95,7 +95,7 @@ func (t Table) Truncate() Table {
 	return t
 }
 
-func (t Table) DML() string {
+func (t Table) SQL() string {
 	return t.Statement.String()
 }
 

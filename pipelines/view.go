@@ -112,7 +112,7 @@ func (v View) Create() View {
 	return v
 }
 
-func (v View) DML() string {
+func (v View) SQL() string {
 	return v.Statement.String()
 }
 

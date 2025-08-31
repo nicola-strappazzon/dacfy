@@ -44,7 +44,7 @@ func (d Database) Use() Database {
 	return d
 }
 
-func (d Database) DML() string {
+func (d Database) SQL() string {
 	return d.Statement.String()
 }
 

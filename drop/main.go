@@ -45,17 +45,17 @@ func Run() (err error) {
 		Delete    bool
 	}{
 		{
-			Statement: pl.View.Drop().DML(),
+			Statement: pl.View.Drop().SQL(),
 			Delete:    pl.View.Delete,
 			Message:   fmt.Sprintf("Delete view: %s", pl.View.Name),
 		},
 		{
-			Statement: pl.Table.Drop().DML(),
+			Statement: pl.Table.Drop().SQL(),
 			Delete:    pl.Table.Delete,
 			Message:   fmt.Sprintf("Delete table: %s", pl.Table.Name),
 		},
 		{
-			Statement: pl.Database.Drop().DML(),
+			Statement: pl.Database.Drop().SQL(),
 			Delete:    pl.Database.Delete,
 			Message:   fmt.Sprintf("Delete database: %s", pl.Database.Name),
 		},

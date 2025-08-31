@@ -20,8 +20,8 @@ func TestView_Drop_DataBaseNameIsEmpty(t *testing.T) {
 	}
 	v.SetParents()
 
-	assert.Empty(t, v.View.DML())
-	assert.Empty(t, v.View.Drop().DML())
+	assert.Empty(t, v.View.SQL())
+	assert.Empty(t, v.View.Drop().SQL())
 }
 
 func TestView_Drop_TableNameIsEmpty(t *testing.T) {
@@ -35,8 +35,8 @@ func TestView_Drop_TableNameIsEmpty(t *testing.T) {
 	}
 	v.SetParents()
 
-	assert.Empty(t, v.View.DML())
-	assert.Empty(t, v.View.Drop().DML())
+	assert.Empty(t, v.View.SQL())
+	assert.Empty(t, v.View.Drop().SQL())
 }
 
 func TestView_Drop(t *testing.T) {
@@ -51,8 +51,8 @@ func TestView_Drop(t *testing.T) {
 	}
 	v.SetParents()
 
-	assert.Empty(t, v.View.DML())
-	assert.Equal(t, "DROP VIEW IF EXISTS foo.bar", v.View.Drop().DML())
+	assert.Empty(t, v.View.SQL())
+	assert.Equal(t, "DROP VIEW IF EXISTS foo.bar", v.View.Drop().SQL())
 }
 
 func TestView_Create(t *testing.T) {
@@ -68,7 +68,7 @@ func TestView_Create(t *testing.T) {
 	v.SetParents()
 
 	assert.NoError(t, v.View.Validate())
-	assert.Equal(t, "CREATE VIEW IF NOT EXISTS foo.bar AS SELECT now()", v.View.Create().DML())
+	assert.Equal(t, "CREATE VIEW IF NOT EXISTS foo.bar AS SELECT now()", v.View.Create().SQL())
 
 	v = pipelines.Pipelines{
 		Database: pipelines.Database{
