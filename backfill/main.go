@@ -5,12 +5,15 @@ import (
 
 	"github.com/nicola-strappazzon/dacfy/clickhouse"
 	"github.com/nicola-strappazzon/dacfy/pipelines"
+	"github.com/nicola-strappazzon/dacfy/strings"
 
 	"github.com/spf13/cobra"
 )
 
 var ch = clickhouse.Instance()
 var pl = pipelines.Instance()
+
+var truncate bool
 
 func NewCommand() *cobra.Command {
 	var cmd = &cobra.Command{
@@ -22,6 +25,8 @@ func NewCommand() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().BoolVarP(&truncate, "truncate", "t", false, "Truncate the table before execution (this will delete all data)")
+
 	return cmd
 }
 
@@ -30,13 +35,40 @@ func Run() (err error) {
 		return err
 	}
 
-	fmt.Printf("--> Starting backfill from view %s into table %s.\n\r", pl.View.Name, pl.View.To)
-
-	if pl.Config.SQL {
-		fmt.Println(pl.Backfill.Do().DML())
+	queries := []struct {
+		Message   string
+		Statement string
+		Progress  bool
+	}{
+		{
+			Statement: pl.Table.Truncate().DML(),
+			Message:   fmt.Sprintf("Truncate table: %s.", pl.View.To),
+		},
+		{
+			Statement: pl.Backfill.Do().DML(),
+			Message:   fmt.Sprintf("Starting backfill from view %s into table %s.", pl.View.Name, pl.View.To),
+			Progress:  true,
+		},
 	}
 
-	err = ch.Execute(pl.Backfill.Do().DML(), true)
+	for _, query := range queries {
+		if strings.IsEmpty(query.Statement) {
+			continue
+		}
+
+		if strings.IsNotEmpty(query.Message) {
+			fmt.Println("-->", query.Message)
+		}
+
+		if pl.Config.SQL {
+			fmt.Println(query.Statement)
+		}
+
+		if err := ch.Execute(query.Statement, query.Progress); err != nil {
+			return err
+		}
+	}
+
 	fmt.Println("")
-	return err
+	return nil
 }
