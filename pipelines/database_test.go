@@ -16,14 +16,14 @@ func TestDatabase_Create(t *testing.T) {
 			Name: pipelines.Name("foo"),
 		}
 
-		assert.Equal(t, "CREATE DATABASE IF NOT EXISTS foo", d.Create().DML())
-		assert.Empty(t, d.DML())
+		assert.Equal(t, "CREATE DATABASE IF NOT EXISTS foo", d.Create().SQL())
+		assert.Empty(t, d.SQL())
 	})
 
 	t.Run("empty name -> no statement", func(t *testing.T) {
 		d := pipelines.Database{}
 
-		assert.Empty(t, d.Create().DML())
+		assert.Empty(t, d.Create().SQL())
 	})
 }
 
@@ -33,14 +33,14 @@ func TestDatabase_Drop(t *testing.T) {
 			Name: pipelines.Name("foo"),
 		}
 
-		assert.Equal(t, "DROP DATABASE IF EXISTS foo", d.Drop().DML())
-		assert.Empty(t, d.DML())
+		assert.Equal(t, "DROP DATABASE IF EXISTS foo", d.Drop().SQL())
+		assert.Empty(t, d.SQL())
 	})
 
 	t.Run("empty name -> no statement", func(t *testing.T) {
 		d := pipelines.Database{}
 
-		assert.Empty(t, d.Drop().DML())
+		assert.Empty(t, d.Drop().SQL())
 	})
 }
 
@@ -50,14 +50,14 @@ func TestDatabase_Use(t *testing.T) {
 			Name: pipelines.Name("foo"),
 		}
 
-		assert.Equal(t, "USE foo", d.Use().DML())
-		assert.Empty(t, d.DML())
+		assert.Equal(t, "USE foo", d.Use().SQL())
+		assert.Empty(t, d.SQL())
 	})
 
 	t.Run("empty name -> no statement", func(t *testing.T) {
 		d := pipelines.Database{}
 
-		assert.Empty(t, d.Use().DML())
+		assert.Empty(t, d.Use().SQL())
 	})
 }
 
@@ -65,7 +65,7 @@ func TestDatabase_DML(t *testing.T) {
 	t.Run("returns underlying builder string", func(t *testing.T) {
 		d := pipelines.Database{Name: pipelines.Name("foo")}
 
-		assert.Equal(t, "CREATE DATABASE IF NOT EXISTS foo", d.Create().DML())
+		assert.Equal(t, "CREATE DATABASE IF NOT EXISTS foo", d.Create().SQL())
 	})
 }
 
