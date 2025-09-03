@@ -23,16 +23,32 @@ type Table struct {
 	Parent      *Pipelines      `yaml:"-"`
 }
 
+func (t Table) SetName(in string) Table {
+	t.Name = Name(in)
+
+	return t
+}
+
+func (t Table) SetSuffix(in string) Table {
+	t.Name = t.Name.Suffix(in)
+
+	return t
+}
+
 func (t Table) Create() Table {
+	if t.Parent.Database.Name.IsEmpty() {
+		return t
+	}
+
 	if t.Name.IsEmpty() {
 		return t
 	}
 
 	t.Statement = strings.Builder{}
 	t.Statement.WriteString("CREATE TABLE IF NOT EXISTS ")
-	t.Statement.WriteString(instance.Database.Name.ToString())
+	t.Statement.WriteString(t.Parent.Database.Name.ToString())
 	t.Statement.WriteString(".")
-	t.Statement.WriteString(t.Name.Suffix(t.Parent.Config.Suffix).ToString())
+	t.Statement.WriteString(t.Name.ToString())
 	t.Statement.WriteString(" (")
 	t.Statement.WriteString(t.Columns.JoinWithTypes())
 	t.Statement.WriteString(") ")
@@ -76,35 +92,55 @@ func (t Table) Create() Table {
 }
 
 func (t Table) Drop() Table {
+	if t.Parent.Database.Name.IsEmpty() {
+		return t
+	}
+
+	if t.Name.IsEmpty() {
+		return t
+	}
+
 	t.Statement = strings.Builder{}
 	t.Statement.WriteString("DROP TABLE IF EXISTS ")
-	t.Statement.WriteString(instance.Database.Name.ToString())
+	t.Statement.WriteString(t.Parent.Database.Name.ToString())
 	t.Statement.WriteString(".")
-	t.Statement.WriteString(t.Name.Suffix(t.Parent.Config.Suffix).ToString())
+	t.Statement.WriteString(t.Name.ToString())
 
 	return t
 }
 
 func (t Table) Truncate() Table {
+	if t.Parent.Database.Name.IsEmpty() {
+		return t
+	}
+
+	if t.Name.IsEmpty() {
+		return t
+	}
+
 	t.Statement = strings.Builder{}
 	t.Statement.WriteString("TRUNCATE TABLE ")
-	t.Statement.WriteString(instance.Database.Name.ToString())
+	t.Statement.WriteString(t.Parent.Database.Name.ToString())
 	t.Statement.WriteString(".")
-	t.Statement.WriteString(t.Name.Suffix(t.Parent.Config.Suffix).ToString())
+	t.Statement.WriteString(t.Name.ToString())
 
 	return t
 }
 
-func (t Table) Rename(from, to string) Table {
+func (t Table) Rename(in string) Table {
+	if t.Name.IsEmpty() {
+		return t
+	}
+
 	t.Statement = strings.Builder{}
 	t.Statement.WriteString("RENAME TABLE ")
-	t.Statement.WriteString(instance.Database.Name.ToString())
+	t.Statement.WriteString(t.Parent.Database.Name.ToString())
 	t.Statement.WriteString(".")
-	t.Statement.WriteString(from)
+	t.Statement.WriteString(t.Name.ToString())
 	t.Statement.WriteString(" TO ")
-	t.Statement.WriteString(instance.Database.Name.ToString())
+	t.Statement.WriteString(t.Parent.Database.Name.ToString())
 	t.Statement.WriteString(".")
-	t.Statement.WriteString(to)
+	t.Statement.WriteString(in)
 
 	return t
 }
@@ -124,10 +160,6 @@ func (t Table) Validate() error {
 
 	if t.Name.IsNotValid() {
 		return fmt.Errorf("table.name %q is invalid; must start with a letter and contain only letters, digits or underscores (max 255 characters)", t.Name.ToString())
-	}
-
-	if t.Name.Suffix(t.Parent.Config.Suffix).IsNotValid() {
-		return fmt.Errorf("table.name %q is invalid; must start with a letter and contain only letters, digits or underscores (max 255 characters)", t.Name.Suffix(t.Parent.Config.Suffix).ToString())
 	}
 
 	if t.Columns.IsEmpty() {

@@ -7,8 +7,15 @@ import (
 )
 
 type Backfill struct {
-	Statement strings.Builder `yaml:"-"`
 	Parent    *Pipelines      `yaml:"-"`
+	Statement strings.Builder `yaml:"-"`
+	suffix    string          `yaml:"-"`
+}
+
+func (b *Backfill) Suffix(in string) *Backfill {
+	(*b).suffix = in
+
+	return b
 }
 
 func (b Backfill) Do() Backfill {
@@ -36,7 +43,7 @@ func (b Backfill) Do() Backfill {
 	b.Statement.WriteString("INSERT INTO ")
 	b.Statement.WriteString(b.Parent.Database.Name.ToString())
 	b.Statement.WriteString(".")
-	b.Statement.WriteString(b.Parent.View.To.Suffix(b.Parent.Config.Suffix).ToString())
+	b.Statement.WriteString(b.Parent.View.To.Suffix(b.suffix).ToString())
 
 	if b.Parent.View.Columns.IsNotEmpty() {
 		b.Statement.WriteString(" (")
@@ -76,10 +83,6 @@ func (b Backfill) Validate() error {
 
 	if b.Parent.View.To.IsNotValid() {
 		return fmt.Errorf("view.to %q is invalid; must start with a letter and contain only letters, digits or underscores (max 255 characters)", b.Parent.View.To.ToString())
-	}
-
-	if b.Parent.View.To.Suffix(b.Parent.Config.Suffix).IsNotValid() {
-		return fmt.Errorf("view.to %q is invalid; must start with a letter and contain only letters, digits or underscores (max 255 characters)", b.Parent.View.To.Suffix(b.Parent.Config.Suffix).ToString())
 	}
 
 	if b.Parent.View.Query.IsEmpty() {
