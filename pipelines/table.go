@@ -95,6 +95,20 @@ func (t Table) Truncate() Table {
 	return t
 }
 
+func (t Table) Rename(from, to string) Table {
+	t.Statement = strings.Builder{}
+	t.Statement.WriteString("RENAME TABLE ")
+	t.Statement.WriteString(instance.Database.Name.ToString())
+	t.Statement.WriteString(".")
+	t.Statement.WriteString(from)
+	t.Statement.WriteString(" TO ")
+	t.Statement.WriteString(instance.Database.Name.ToString())
+	t.Statement.WriteString(".")
+	t.Statement.WriteString(to)
+
+	return t
+}
+
 func (t Table) SQL() string {
 	return t.Statement.String()
 }
