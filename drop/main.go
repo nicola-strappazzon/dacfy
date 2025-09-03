@@ -74,7 +74,7 @@ func Run() (err error) {
 			fmt.Println("-->", query.Message)
 		}
 
-		if pl.Config.SQL || pl.Config.DryRun {
+		if pl.Config.SQL {
 			fmt.Println(query.Statement)
 		}
 

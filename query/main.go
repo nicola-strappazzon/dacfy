@@ -51,7 +51,7 @@ func Run() (err error) {
 			return err
 		}
 
-		if pl.Config.SQL || pl.Config.DryRun {
+		if pl.Config.SQL {
 			fmt.Println(pl.View.Query.ToString())
 		}
 
