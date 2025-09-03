@@ -40,7 +40,7 @@ func (v View) Drop() View {
 	v.Statement.WriteString("DROP VIEW IF EXISTS ")
 	v.Statement.WriteString(v.Parent.Database.Name.ToString())
 	v.Statement.WriteString(".")
-	v.Statement.WriteString(v.Name.ToString())
+	v.Statement.WriteString(v.Name.Suffix(v.Parent.Config.Suffix).ToString())
 
 	return v
 }
@@ -68,14 +68,14 @@ func (v View) Create() View {
 	v.Statement.WriteString("VIEW IF NOT EXISTS ")
 	v.Statement.WriteString(v.Parent.Database.Name.ToString())
 	v.Statement.WriteString(".")
-	v.Statement.WriteString(v.Name.ToString())
+	v.Statement.WriteString(v.Name.Suffix(v.Parent.Config.Suffix).ToString())
 
 	if v.Materialized {
 		if v.Populate.IsBackFill() {
 			v.Statement.WriteString(" TO ")
 			v.Statement.WriteString(v.Parent.Database.Name.ToString())
 			v.Statement.WriteString(".")
-			v.Statement.WriteString(v.To.ToString())
+			v.Statement.WriteString(v.To.Suffix(v.Parent.Config.Suffix).ToString())
 		}
 
 		if v.Populate.IsNotBackFill() {
@@ -127,6 +127,10 @@ func (v View) Validate() error {
 
 	if v.Name.IsNotValid() {
 		return fmt.Errorf("view.name %q is invalid; must start with a letter and contain only letters, digits or underscores (max 255 characters)", v.Name.ToString())
+	}
+
+	if v.Name.Suffix(v.Parent.Config.Suffix).IsNotValid() {
+		return fmt.Errorf("table.name %q is invalid; must start with a letter and contain only letters, digits or underscores (max 255 characters)", v.Name.Suffix(v.Parent.Config.Suffix).ToString())
 	}
 
 	if v.Name.IsEmpty() && v.Delete {

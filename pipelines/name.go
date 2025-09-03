@@ -25,3 +25,11 @@ func (n Name) IsNotValid() bool {
 
 	return !re.MatchString(n.ToString())
 }
+
+func (n Name) Suffix(in string) Name {
+	if n.IsEmpty() {
+		return n
+	}
+
+	return Name(n.ToString() + in)
+}

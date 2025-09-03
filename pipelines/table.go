@@ -32,7 +32,7 @@ func (t Table) Create() Table {
 	t.Statement.WriteString("CREATE TABLE IF NOT EXISTS ")
 	t.Statement.WriteString(instance.Database.Name.ToString())
 	t.Statement.WriteString(".")
-	t.Statement.WriteString(t.Name.ToString())
+	t.Statement.WriteString(t.Name.Suffix(t.Parent.Config.Suffix).ToString())
 	t.Statement.WriteString(" (")
 	t.Statement.WriteString(t.Columns.JoinWithTypes())
 	t.Statement.WriteString(") ")
@@ -80,7 +80,7 @@ func (t Table) Drop() Table {
 	t.Statement.WriteString("DROP TABLE IF EXISTS ")
 	t.Statement.WriteString(instance.Database.Name.ToString())
 	t.Statement.WriteString(".")
-	t.Statement.WriteString(t.Name.ToString())
+	t.Statement.WriteString(t.Name.Suffix(t.Parent.Config.Suffix).ToString())
 
 	return t
 }
@@ -90,7 +90,7 @@ func (t Table) Truncate() Table {
 	t.Statement.WriteString("TRUNCATE TABLE ")
 	t.Statement.WriteString(instance.Database.Name.ToString())
 	t.Statement.WriteString(".")
-	t.Statement.WriteString(t.Name.ToString())
+	t.Statement.WriteString(t.Name.Suffix(t.Parent.Config.Suffix).ToString())
 
 	return t
 }
@@ -110,6 +110,10 @@ func (t Table) Validate() error {
 
 	if t.Name.IsNotValid() {
 		return fmt.Errorf("table.name %q is invalid; must start with a letter and contain only letters, digits or underscores (max 255 characters)", t.Name.ToString())
+	}
+
+	if t.Name.Suffix(t.Parent.Config.Suffix).IsNotValid() {
+		return fmt.Errorf("table.name %q is invalid; must start with a letter and contain only letters, digits or underscores (max 255 characters)", t.Name.Suffix(t.Parent.Config.Suffix).ToString())
 	}
 
 	if t.Columns.IsEmpty() {
