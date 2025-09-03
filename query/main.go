@@ -51,6 +51,14 @@ func Run() (err error) {
 			return err
 		}
 
+		if pl.Config.SQL || pl.Config.DryRun {
+			fmt.Println(pl.View.Query.ToString())
+		}
+
+		if pl.Config.DryRun {
+			return nil
+		}
+
 		if err = ch.Execute(pl.View.Query.ToString(), true); err != nil {
 			return err
 		}
