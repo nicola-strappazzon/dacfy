@@ -42,12 +42,16 @@ func Run() (err error) {
 	}{
 		{
 			Statement: pl.Table.Truncate().SQL(),
-			Message:   fmt.Sprintf("Truncate table: %s.", pl.View.To),
+			Message: fmt.Sprintf(
+				"Truncate table: %s.", pl.View.To.Suffix(pl.Config.Suffix).ToString()),
 		},
 		{
 			Statement: pl.Backfill.Do().SQL(),
-			Message:   fmt.Sprintf("Starting backfill from view %s into table %s.", pl.View.Name, pl.View.To),
-			Progress:  true,
+			Message: fmt.Sprintf(
+				"Starting backfill from view %s into table %s.",
+				pl.View.Name.Suffix(pl.Config.Suffix).ToString(),
+				pl.View.To.Suffix(pl.Config.Suffix).ToString()),
+			Progress: true,
 		},
 	}
 
