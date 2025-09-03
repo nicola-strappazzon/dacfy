@@ -68,8 +68,9 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 	}
 
 	rootCmd.PersistentFlags().StringVar(&pl.Config.Host, "host", "127.0.0.1:9000", "ClickHouse server host and port.")
-	rootCmd.PersistentFlags().StringVar(&pl.Config.User, "user", "default", "Username for the ClickHouse server.")
 	rootCmd.PersistentFlags().StringVar(&pl.Config.Password, "password", "", "Password for the ClickHouse server.")
+	rootCmd.PersistentFlags().StringVar(&pl.Config.Suffix, "suffix", "", "Append a suffix to table and view names.")
+	rootCmd.PersistentFlags().StringVar(&pl.Config.User, "user", "default", "Username for the ClickHouse server.")
 	rootCmd.PersistentFlags().BoolVar(&pl.Config.Debug, "debug", false, "Enable debug mode.")
 	rootCmd.PersistentFlags().BoolVar(&pl.Config.DryRun, "dry-run", false, "Show what would be executed without applying changes.")
 	rootCmd.PersistentFlags().BoolVar(&pl.Config.SQL, "sql", false, "Show SQL Statement.")

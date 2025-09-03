@@ -99,3 +99,22 @@ func TestName_IsNotValid(t *testing.T) {
 		assert.True(t, n.IsEmpty())
 	})
 }
+
+func TestName_SetSuffix(t *testing.T) {
+	cases := []struct {
+		name   string
+		input  pipelines.Name
+		expect string
+	}{
+		{"empty", pipelines.Name("").Suffix("_old"), ""},
+		{"database name", pipelines.Name("analytics").Suffix("_old"), "analytics_old"},
+		{"table/column with underscore", pipelines.Name("events_2025").Suffix("_old"), "events_2025_old"},
+		{"raw whitespace kept", pipelines.Name("  ").Suffix("_old"), "  "},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expect, tc.input.ToString())
+		})
+	}
+}
