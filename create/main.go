@@ -47,18 +47,18 @@ func Run() (err error) {
 		{
 			Ignore:    ch.DatabaseExists(pl.Database.Name.ToString()),
 			Statement: pl.Database.Create().SQL(),
-			Message:   fmt.Sprintf("Create database: %s", pl.Database.Name),
+			Message:   fmt.Sprintf("Create database: %s", pl.Database.Name.ToString()),
 		},
 		{
 			Statement: pl.Database.Use().SQL(),
 		},
 		{
 			Statement: pl.Table.Create().SQL(),
-			Message:   fmt.Sprintf("Create table: %s", pl.Table.Name),
+			Message:   fmt.Sprintf("Create table: %s", pl.Table.Name.Suffix(pl.Config.Suffix).ToString()),
 		},
 		{
 			Statement: pl.View.Create().SQL(),
-			Message:   fmt.Sprintf("Create view: %s", pl.View.Name),
+			Message:   fmt.Sprintf("Create view: %s", pl.View.Name.Suffix(pl.Config.Suffix).ToString()),
 		},
 	}
 

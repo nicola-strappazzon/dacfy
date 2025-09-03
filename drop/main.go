@@ -47,12 +47,12 @@ func Run() (err error) {
 		{
 			Statement: pl.View.Drop().SQL(),
 			Delete:    pl.View.Delete,
-			Message:   fmt.Sprintf("Delete view: %s", pl.View.Name),
+			Message:   fmt.Sprintf("Delete view: %s", pl.View.Name.Suffix(pl.Config.Suffix).ToString()),
 		},
 		{
 			Statement: pl.Table.Drop().SQL(),
 			Delete:    pl.Table.Delete,
-			Message:   fmt.Sprintf("Delete table: %s", pl.Table.Name),
+			Message:   fmt.Sprintf("Delete table: %s", pl.Table.Name.Suffix(pl.Config.Suffix).ToString()),
 		},
 		{
 			Statement: pl.Database.Drop().SQL(),

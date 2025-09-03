@@ -151,8 +151,12 @@ func (v View) Validate() error {
 		}
 	}
 
-	if v.Materialized && v.Parent.View.To.IsNotEmpty() && v.Parent.View.To.IsNotValid() {
+	if v.Materialized && v.Parent.View.To.IsNotEmpty() && v.To.IsNotValid() {
 		return fmt.Errorf("view.to %q is invalid; must start with a letter and contain only letters, digits or underscores (max 255 characters)", v.To.ToString())
+	}
+
+	if v.Materialized && v.To.IsNotEmpty() && v.To.Suffix(v.Parent.Config.Suffix).IsNotValid() {
+		return fmt.Errorf("table.name %q is invalid; must start with a letter and contain only letters, digits or underscores (max 255 characters)", v.To.Suffix(v.Parent.Config.Suffix).ToString())
 	}
 
 	if v.Parent.Config.Debug {
