@@ -10,6 +10,7 @@ import (
 	"github.com/nicola-strappazzon/dacfy/drop"
 	"github.com/nicola-strappazzon/dacfy/pipelines"
 	"github.com/nicola-strappazzon/dacfy/query"
+	"github.com/nicola-strappazzon/dacfy/swap"
 	"github.com/nicola-strappazzon/dacfy/terminal"
 	"github.com/nicola-strappazzon/dacfy/version"
 
@@ -79,6 +80,7 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 	rootCmd.AddCommand(create.NewCommand())
 	rootCmd.AddCommand(drop.NewCommand())
 	rootCmd.AddCommand(query.NewCommand())
+	rootCmd.AddCommand(swap.NewCommand())
 	rootCmd.AddCommand(version.NewCommand())
 
 	if err := rootCmd.Execute(); err != nil {

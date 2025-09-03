@@ -112,6 +112,20 @@ func (v View) Create() View {
 	return v
 }
 
+func (v View) Rename(from, to string) View {
+	v.Statement = strings.Builder{}
+	v.Statement.WriteString("RENAME TABLE ")
+	v.Statement.WriteString(instance.Database.Name.ToString())
+	v.Statement.WriteString(".")
+	v.Statement.WriteString(from)
+	v.Statement.WriteString(" TO ")
+	v.Statement.WriteString(instance.Database.Name.ToString())
+	v.Statement.WriteString(".")
+	v.Statement.WriteString(to)
+
+	return v
+}
+
 func (v View) SQL() string {
 	return v.Statement.String()
 }
