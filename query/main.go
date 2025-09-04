@@ -32,7 +32,15 @@ func Run() (err error) {
 
 	if pl.Table.Query.IsNotEmpty() {
 		fmt.Println("--> Running table query:")
-		fmt.Println(pl.Table.Query.ToString())
+
+		if pl.Config.SQL {
+			fmt.Println(pl.Table.Query.ToString() + ";")
+		}
+
+		if pl.Config.DryRun {
+			return nil
+		}
+
 		if err = ch.Execute(pl.Database.Use().SQL(), false); err != nil {
 			return err
 		}
@@ -46,17 +54,17 @@ func Run() (err error) {
 
 	if pl.View.Query.IsNotEmpty() {
 		fmt.Println("--> Running view query:")
-		fmt.Println(pl.Table.Query.ToString())
-		if err = ch.Execute(pl.Database.Use().SQL(), false); err != nil {
-			return err
-		}
 
 		if pl.Config.SQL {
-			fmt.Println(pl.View.Query.ToString())
+			fmt.Println(pl.View.Query.ToString() + ";")
 		}
 
 		if pl.Config.DryRun {
 			return nil
+		}
+
+		if err = ch.Execute(pl.Database.Use().SQL(), false); err != nil {
+			return err
 		}
 
 		if err = ch.Execute(pl.View.Query.ToString(), true); err != nil {
