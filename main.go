@@ -51,7 +51,7 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 			if pl.Config.Pipe == "" && len(args) > 0 {
 				pl.Config.Pipe = args[0]
 
-				if err = pl.Load(pl.Config.Pipe); err != nil {
+				if err = pl.Load(); err != nil {
 					return err
 				}
 
