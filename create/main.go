@@ -53,21 +53,21 @@ func Run() (err error) {
 			Statement: pl.Database.Use().SQL(),
 		},
 		{
-			Statement: pl.Table.Create().SQL(),
-			Message:   fmt.Sprintf("Create table: %s", pl.Table.Name.Suffix(pl.Config.Suffix).ToString()),
+			Statement: pl.Table.SetSuffix(pl.Config.Suffix).Create().SQL(),
+			Message:   fmt.Sprintf("Create table: %s", pl.Table.SetSuffix(pl.Config.Suffix).Name.ToString()),
 		},
 		{
-			Statement: pl.View.Create().SQL(),
-			Message:   fmt.Sprintf("Create view: %s", pl.View.Name.Suffix(pl.Config.Suffix).ToString()),
+			Statement: pl.View.SetSuffix(pl.Config.Suffix).Create().SQL(),
+			Message:   fmt.Sprintf("Create view: %s", pl.View.SetSuffix(pl.Config.Suffix).Name.ToString()),
 		},
 	}
 
 	for _, query := range queries {
-		if strings.IsEmpty(query.Statement) {
+		if query.Ignore {
 			continue
 		}
 
-		if query.Ignore {
+		if strings.IsEmpty(query.Statement) {
 			continue
 		}
 

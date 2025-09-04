@@ -35,27 +35,36 @@ func Run() (err error) {
 		return err
 	}
 
+	pl.Table.Name = pl.View.To
+
 	queries := []struct {
 		Message   string
 		Statement string
 		Progress  bool
+		Execute   bool
 	}{
 		{
-			Statement: pl.Table.Truncate().SQL(),
+			Statement: pl.Table.SetSuffix(pl.Config.Suffix).Truncate().SQL(),
 			Message: fmt.Sprintf(
-				"Truncate table: %s.", pl.View.To.Suffix(pl.Config.Suffix).ToString()),
+				"Truncate table: %s", pl.Table.SetSuffix(pl.Config.Suffix).Name.ToString()),
+			Execute: truncate,
 		},
 		{
-			Statement: pl.Backfill.Do().SQL(),
+			Statement: pl.Backfill.Suffix(pl.Config.Suffix).Do().SQL(),
 			Message: fmt.Sprintf(
-				"Starting backfill from view %s into table %s.",
+				"Starting backfill from view %s into table %s",
 				pl.View.Name.Suffix(pl.Config.Suffix).ToString(),
 				pl.View.To.Suffix(pl.Config.Suffix).ToString()),
 			Progress: true,
+			Execute:  true,
 		},
 	}
 
 	for _, query := range queries {
+		if !query.Execute {
+			continue
+		}
+
 		if strings.IsEmpty(query.Statement) {
 			continue
 		}

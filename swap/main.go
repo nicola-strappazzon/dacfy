@@ -47,26 +47,33 @@ func Run() (err error) {
 		return err
 	}
 
-	suffix := NowSuffix()
+	suffix_set := pl.Config.Suffix
+	suffix_tmp := NowSuffix()
+	pl.Config.Suffix = ""
+
 	queries := []struct {
 		Message   string
 		Statement string
 	}{
 		{
-			Statement: pl.Table.Rename(pl.Table.Name.ToString(), pl.Table.Name.Suffix(suffix).ToString()).SQL(),
-			Message:   fmt.Sprintf("Rename table: %s to %s.", pl.Table.Name.ToString(), pl.Table.Name.Suffix(suffix).ToString()),
+			Statement: pl.View.Drop().SQL(),
+			Message:   fmt.Sprintf("Drop view: %s", pl.View.Name.ToString()),
 		},
 		{
-			Statement: pl.Table.Rename(pl.Table.Name.Suffix(pl.Config.Suffix).ToString(), pl.Table.Name.ToString()).SQL(),
-			Message:   fmt.Sprintf("Rename table: %s to %s.", pl.Table.Name.Suffix(pl.Config.Suffix).ToString(), pl.Table.Name.ToString()),
+			Statement: pl.View.SetSuffix(suffix_set).Drop().SQL(),
+			Message:   fmt.Sprintf("Drop view: %s", pl.View.Name.ToString()),
 		},
 		{
-			Statement: pl.View.Rename(pl.View.Name.ToString(), pl.View.Name.Suffix(suffix).ToString()).SQL(),
-			Message:   fmt.Sprintf("Rename view: %s to %s.", pl.View.Name.ToString(), pl.View.Name.Suffix(suffix).ToString()),
+			Statement: pl.Table.Rename(pl.Table.Name.Suffix(suffix_tmp).ToString()).SQL(),
+			Message:   fmt.Sprintf("Rename table: %s to %s", pl.Table.Name.ToString(), pl.Table.Name.Suffix(suffix_tmp).ToString()),
 		},
 		{
-			Statement: pl.View.Rename(pl.View.Name.Suffix(pl.Config.Suffix).ToString(), pl.View.Name.ToString()).SQL(),
-			Message:   fmt.Sprintf("Rename view: %s to %s.", pl.View.Name.Suffix(pl.Config.Suffix).ToString(), pl.View.Name.ToString()),
+			Statement: pl.Table.SetSuffix(suffix_set).Rename(pl.Table.Name.ToString()).SQL(),
+			Message:   fmt.Sprintf("Rename table: %s to %s", pl.Table.SetSuffix(suffix_set).Name.ToString(), pl.Table.Name.ToString()),
+		},
+		{
+			Statement: pl.View.Create().SQL(),
+			Message:   fmt.Sprintf("Create view: %s", pl.View.Name.ToString()),
 		},
 	}
 

@@ -45,12 +45,12 @@ func Run() (err error) {
 		Delete    bool
 	}{
 		{
-			Statement: pl.View.Drop().SQL(),
+			Statement: pl.View.SetSuffix(pl.Config.Suffix).Drop().SQL(),
 			Delete:    pl.View.Delete,
 			Message:   fmt.Sprintf("Delete view: %s", pl.View.Name.Suffix(pl.Config.Suffix).ToString()),
 		},
 		{
-			Statement: pl.Table.Drop().SQL(),
+			Statement: pl.Table.SetSuffix(pl.Config.Suffix).Drop().SQL(),
 			Delete:    pl.Table.Delete,
 			Message:   fmt.Sprintf("Delete table: %s", pl.Table.Name.Suffix(pl.Config.Suffix).ToString()),
 		},
@@ -62,7 +62,7 @@ func Run() (err error) {
 	}
 
 	for _, query := range queries {
-		if query.Delete == false {
+		if !query.Delete {
 			continue
 		}
 

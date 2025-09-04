@@ -23,6 +23,13 @@ type View struct {
 	Parent       *Pipelines      `yaml:"-"`
 }
 
+func (v View) SetSuffix(in string) View {
+	v.Name = v.Name.Suffix(in)
+	v.To = v.To.Suffix(in)
+
+	return v
+}
+
 func (v View) Drop() View {
 	if v.Parent.Database.Name.IsEmpty() {
 		return v
@@ -40,7 +47,7 @@ func (v View) Drop() View {
 	v.Statement.WriteString("DROP VIEW IF EXISTS ")
 	v.Statement.WriteString(v.Parent.Database.Name.ToString())
 	v.Statement.WriteString(".")
-	v.Statement.WriteString(v.Name.Suffix(v.Parent.Config.Suffix).ToString())
+	v.Statement.WriteString(v.Name.ToString())
 
 	return v
 }
@@ -68,14 +75,14 @@ func (v View) Create() View {
 	v.Statement.WriteString("VIEW IF NOT EXISTS ")
 	v.Statement.WriteString(v.Parent.Database.Name.ToString())
 	v.Statement.WriteString(".")
-	v.Statement.WriteString(v.Name.Suffix(v.Parent.Config.Suffix).ToString())
+	v.Statement.WriteString(v.Name.ToString())
 
 	if v.Materialized {
 		if v.Populate.IsBackFill() {
 			v.Statement.WriteString(" TO ")
 			v.Statement.WriteString(v.Parent.Database.Name.ToString())
 			v.Statement.WriteString(".")
-			v.Statement.WriteString(v.To.Suffix(v.Parent.Config.Suffix).ToString())
+			v.Statement.WriteString(v.To.ToString())
 		}
 
 		if v.Populate.IsNotBackFill() {
@@ -112,16 +119,24 @@ func (v View) Create() View {
 	return v
 }
 
-func (v View) Rename(from, to string) View {
+func (v View) Rename(in string) View {
+	if v.Parent.Database.Name.IsEmpty() {
+		return v
+	}
+
+	if v.Name.IsEmpty() {
+		return v
+	}
+
 	v.Statement = strings.Builder{}
 	v.Statement.WriteString("RENAME TABLE ")
-	v.Statement.WriteString(instance.Database.Name.ToString())
+	v.Statement.WriteString(v.Parent.Database.Name.ToString())
 	v.Statement.WriteString(".")
-	v.Statement.WriteString(from)
+	v.Statement.WriteString(v.Name.ToString())
 	v.Statement.WriteString(" TO ")
-	v.Statement.WriteString(instance.Database.Name.ToString())
+	v.Statement.WriteString(v.Parent.Database.Name.ToString())
 	v.Statement.WriteString(".")
-	v.Statement.WriteString(to)
+	v.Statement.WriteString(in)
 
 	return v
 }
@@ -141,10 +156,6 @@ func (v View) Validate() error {
 
 	if v.Name.IsNotValid() {
 		return fmt.Errorf("view.name %q is invalid; must start with a letter and contain only letters, digits or underscores (max 255 characters)", v.Name.ToString())
-	}
-
-	if v.Name.Suffix(v.Parent.Config.Suffix).IsNotValid() {
-		return fmt.Errorf("table.name %q is invalid; must start with a letter and contain only letters, digits or underscores (max 255 characters)", v.Name.Suffix(v.Parent.Config.Suffix).ToString())
 	}
 
 	if v.Name.IsEmpty() && v.Delete {
@@ -167,10 +178,6 @@ func (v View) Validate() error {
 
 	if v.Materialized && v.Parent.View.To.IsNotEmpty() && v.To.IsNotValid() {
 		return fmt.Errorf("view.to %q is invalid; must start with a letter and contain only letters, digits or underscores (max 255 characters)", v.To.ToString())
-	}
-
-	if v.Materialized && v.To.IsNotEmpty() && v.To.Suffix(v.Parent.Config.Suffix).IsNotValid() {
-		return fmt.Errorf("table.name %q is invalid; must start with a letter and contain only letters, digits or underscores (max 255 characters)", v.To.Suffix(v.Parent.Config.Suffix).ToString())
 	}
 
 	if v.Parent.Config.Debug {
