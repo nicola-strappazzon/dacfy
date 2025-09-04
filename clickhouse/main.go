@@ -126,6 +126,10 @@ func (ch *ClickHouse) WriteProcess() {
 }
 
 func (ch *ClickHouse) GatherSystemProcess() error {
+	if ch.IsNotConnected() {
+		return nil
+	}
+
 	sql := fmt.Sprintf("SELECT toUInt64(memory_usage) AS memory, toUInt64(peak_memory_usage) AS PeakMemory, ProfileEvents['OSCPUVirtualTimeMicroseconds'] / 100000 AS cpu FROM system.processes WHERE query_id = '%s'", ch.QueryID)
 	ctx := clickhouse.Context(context.Background())
 
@@ -137,6 +141,10 @@ func (ch *ClickHouse) GatherSystemProcess() error {
 }
 
 func (ch *ClickHouse) DatabaseExists(in string) (out bool) {
+	if ch.IsNotConnected() {
+		return out
+	}
+
 	ch.Connection.QueryRow(
 		clickhouse.Context(context.Background()),
 		fmt.Sprintf("SELECT true FROM system.databases WHERE name = '%s';", in),
@@ -147,4 +155,8 @@ func (ch *ClickHouse) DatabaseExists(in string) (out bool) {
 
 func (ch *ClickHouse) SetLogger(in LoggerProgress) {
 	loggerProgress = in
+}
+
+func (ch *ClickHouse) IsNotConnected() bool {
+	return ch.Connection == nil
 }
