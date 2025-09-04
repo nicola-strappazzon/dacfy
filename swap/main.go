@@ -87,7 +87,7 @@ func Run() (err error) {
 		}
 
 		if pl.Config.SQL {
-			fmt.Println(query.Statement)
+			fmt.Println(query.Statement + ";")
 		}
 
 		if pl.Config.DryRun {
