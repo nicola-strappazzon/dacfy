@@ -19,14 +19,14 @@ func NewCommand() *cobra.Command {
 		Short:   "Create tables and materialized views as defined in the pipelines.",
 		Example: `dacfy create foo.yaml`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return Run()
+			return Run(cmd)
 		},
 	}
 
 	return cmd
 }
 
-func Run() (err error) {
+func Run(cmd *cobra.Command) (err error) {
 	if err = pl.Database.Validate(); err != nil {
 		return err
 	}
@@ -72,11 +72,11 @@ func Run() (err error) {
 		}
 
 		if strings.IsNotEmpty(query.Message) {
-			fmt.Println("-->", query.Message)
+			fmt.Fprintln(cmd.OutOrStdout(), "-->", query.Message)
 		}
 
 		if pl.Config.SQL {
-			fmt.Println(query.Statement + ";")
+			fmt.Fprintln(cmd.OutOrStdout(), query.Statement+";")
 		}
 
 		if pl.Config.DryRun {
