@@ -11,16 +11,17 @@ import (
 type Table struct {
 	Columns     columns.Map     `yaml:"columns"`
 	Delete      bool            `yaml:"delete"`
+	DependsOn   []string        `yaml:"-"`
 	Engine      Engine          `yaml:"engine"`
 	Name        Name            `yaml:"name"`
 	OrderBy     columns.Array   `yaml:"order_by"`
+	Parent      *Pipelines      `yaml:"-"`
 	PartitionBy columns.Array   `yaml:"partition_by"`
 	PrimaryKey  columns.Array   `yaml:"primary_key"`
 	Query       Query           `yaml:"query"`
 	Settings    []string        `yaml:"settings"`
 	Statement   strings.Builder `yaml:"-"`
 	TTL         string          `yaml:"ttl"`
-	Parent      *Pipelines      `yaml:"-"`
 }
 
 func (t Table) SetName(in string) Table {
