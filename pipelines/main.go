@@ -3,6 +3,8 @@ package pipelines
 import (
 	"os"
 
+	"github.com/nicola-strappazzon/dacfy/file"
+
 	"github.com/goccy/go-yaml"
 )
 
@@ -37,7 +39,7 @@ func (p *Pipelines) Load() error {
 		return err
 	}
 
-	return yaml.Unmarshal(f, p)
+	return yaml.Unmarshal(file.ReadExpandEnv(f), p)
 }
 
 func (p *Pipelines) SetParents() {
