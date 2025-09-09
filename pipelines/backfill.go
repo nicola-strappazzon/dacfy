@@ -57,6 +57,11 @@ func (b Backfill) Do() Backfill {
 
 	b.Statement.WriteString(b.Parent.View.Query.Minify())
 
+	if len(b.Parent.View.Settings) > 0 {
+		b.Statement.WriteString(" SETTINGS ")
+		b.Statement.WriteString(strings.Join(b.Parent.View.Settings))
+	}
+
 	return b
 }
 

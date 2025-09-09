@@ -15,12 +15,13 @@ type View struct {
 	Materialized bool            `yaml:"materialized"`
 	Name         Name            `yaml:"name"`
 	OrderBy      columns.Array   `yaml:"order_by"`
+	Parent       *Pipelines      `yaml:"-"`
 	PartitionBy  columns.Array   `yaml:"partition_by"`
 	Populate     Populate        `yaml:"populate"`
 	Query        Query           `yaml:"query"`
+	Settings     []string        `yaml:"settings"`
 	Statement    strings.Builder `yaml:"-"`
 	To           Name            `yaml:"to"`
-	Parent       *Pipelines      `yaml:"-"`
 }
 
 func (v View) SetSuffix(in string) View {
