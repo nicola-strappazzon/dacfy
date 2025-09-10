@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/nicola-strappazzon/dacfy/clickhouse"
+	"github.com/nicola-strappazzon/dacfy/dependency"
 	"github.com/nicola-strappazzon/dacfy/pipelines"
 	"github.com/nicola-strappazzon/dacfy/strings"
 
@@ -44,6 +45,14 @@ func Run() (err error) {
 	}
 
 	if err = pl.View.Validate(); err != nil {
+		return err
+	}
+
+	if err = dependency.Views(); err != nil {
+		return err
+	}
+
+	if err = dependency.HasViews(); err != nil {
 		return err
 	}
 

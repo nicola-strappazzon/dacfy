@@ -37,6 +37,7 @@ dacfy create agg_user_daily.yaml
 dacfy create agg_revenue_country.yaml
 dacfy create mv_user_daily.yaml
 dacfy create mv_revenue_country.yaml
+dacfy query events.yaml
 ```
 
 > [!NOTE]  

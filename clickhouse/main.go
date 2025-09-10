@@ -28,6 +28,7 @@ type ClickHouse struct {
 	Connection driver.Conn
 	QueryID    string
 	Progress   Progress
+	Context    context.Context
 }
 
 func (ch *ClickHouse) NewQueryID() string {
@@ -73,7 +74,9 @@ func (ch *ClickHouse) Connect() (err error) {
 		return err
 	}
 
-	return ch.Connection.Ping(context.Background())
+	ch.Context = clickhouse.Context(context.Background())
+
+	return ch.Connection.Ping(ch.Context)
 }
 
 func (ch *ClickHouse) Execute(in string, logger bool) (err error) {
@@ -87,9 +90,7 @@ func (ch *ClickHouse) Execute(in string, logger bool) (err error) {
 }
 
 func (ch *ClickHouse) ExecuteWitchOutLogger(in string) error {
-	ctx := clickhouse.Context(context.Background())
-
-	if err := ch.Connection.Exec(ctx, in); err != nil {
+	if err := ch.Connection.Exec(ch.Context, in); err != nil {
 		return err
 	}
 
@@ -131,9 +132,8 @@ func (ch *ClickHouse) GatherSystemProcess() error {
 	}
 
 	sql := fmt.Sprintf("SELECT toUInt64(memory_usage) AS memory, toUInt64(peak_memory_usage) AS PeakMemory, ProfileEvents['OSCPUVirtualTimeMicroseconds'] / 100000 AS cpu FROM system.processes WHERE query_id = '%s'", ch.QueryID)
-	ctx := clickhouse.Context(context.Background())
 
-	if err := ch.Connection.QueryRow(ctx, sql).Scan(&ch.Progress.Memory, &ch.Progress.PeakMemory, &ch.Progress.CPU); err != nil {
+	if err := ch.Connection.QueryRow(ch.Context, sql).Scan(&ch.Progress.Memory, &ch.Progress.PeakMemory, &ch.Progress.CPU); err != nil {
 		return err
 	}
 
@@ -146,7 +146,7 @@ func (ch *ClickHouse) DatabaseExists(in string) (out bool) {
 	}
 
 	ch.Connection.QueryRow(
-		clickhouse.Context(context.Background()),
+		ch.Context,
 		fmt.Sprintf("SELECT true FROM system.databases WHERE name = '%s';", in),
 	).Scan(&out)
 
