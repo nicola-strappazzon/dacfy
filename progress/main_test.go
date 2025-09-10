@@ -1,17 +1,17 @@
-package clickhouse_test
+package progress_test
 
 import (
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/nicola-strappazzon/dacfy/clickhouse"
+	"github.com/nicola-strappazzon/dacfy/progress"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestStartNowSetsStart(t *testing.T) {
-	var p clickhouse.Progress
+	var p progress.Progress
 	before := time.Now().Add(-1 * time.Second)
 	p.StartNow()
 	assert.WithinDuration(t, time.Now(), p.Start, time.Second)
@@ -19,7 +19,7 @@ func TestStartNowSetsStart(t *testing.T) {
 }
 
 func TestSetReadRowsAndBytes(t *testing.T) {
-	var p clickhouse.Progress
+	var p progress.Progress
 	p.SetReadRows(10)
 	p.SetReadRows(5)
 	assert.EqualValues(t, 15, p.ReadRows)
@@ -30,7 +30,7 @@ func TestSetReadRowsAndBytes(t *testing.T) {
 }
 
 func TestSetTotalRowsOnlyWhenPositive(t *testing.T) {
-	var p clickhouse.Progress
+	var p progress.Progress
 	p.SetTotalRows(0)
 	assert.EqualValues(t, 0, p.TotalRows)
 
@@ -42,27 +42,27 @@ func TestSetTotalRowsOnlyWhenPositive(t *testing.T) {
 }
 
 func TestElapsed(t *testing.T) {
-	p := clickhouse.Progress{Start: time.Now().Add(-1500 * time.Millisecond)}
+	p := progress.Progress{Start: time.Now().Add(-1500 * time.Millisecond)}
 	el := p.Elapsed()
 	assert.GreaterOrEqual(t, int64(el/time.Millisecond), int64(1400)) // ~1.5s
 }
 
 func TestPercentBasic(t *testing.T) {
-	p := clickhouse.Progress{TotalRows: 0, ReadRows: 100}
+	p := progress.Progress{TotalRows: 0, ReadRows: 100}
 	assert.Equal(t, 0, p.Percent(), "sin total => 0%")
 
-	p = clickhouse.Progress{TotalRows: 200, ReadRows: 100}
+	p = progress.Progress{TotalRows: 200, ReadRows: 100}
 	assert.Equal(t, 50, p.Percent(), "100/200 => 50%")
 
-	p = clickhouse.Progress{TotalRows: 101, ReadRows: 50} // 49.5 => 50
+	p = progress.Progress{TotalRows: 101, ReadRows: 50} // 49.5 => 50
 	assert.Equal(t, 50, p.Percent())
 
-	p = clickhouse.Progress{TotalRows: 100, ReadRows: 150} // 100
+	p = progress.Progress{TotalRows: 100, ReadRows: 150} // 100
 	assert.Equal(t, 100, p.Percent())
 }
 
 func TestToStringWithTotalRows(t *testing.T) {
-	p := clickhouse.Progress{
+	p := progress.Progress{
 		Start:     time.Now().Add(-2 * time.Second),
 		ReadRows:  50,
 		TotalRows: 100,
@@ -84,7 +84,7 @@ func TestToStringWithTotalRows(t *testing.T) {
 }
 
 func TestToStringWithoutTotalRows(t *testing.T) {
-	p := clickhouse.Progress{
+	p := progress.Progress{
 		Start:     time.Now().Add(-500 * time.Millisecond),
 		ReadRows:  123,
 		TotalRows: 0,

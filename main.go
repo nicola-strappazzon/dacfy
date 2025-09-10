@@ -9,6 +9,7 @@ import (
 	"github.com/nicola-strappazzon/dacfy/create"
 	"github.com/nicola-strappazzon/dacfy/drop"
 	"github.com/nicola-strappazzon/dacfy/pipelines"
+	"github.com/nicola-strappazzon/dacfy/progress"
 	"github.com/nicola-strappazzon/dacfy/query"
 	"github.com/nicola-strappazzon/dacfy/swap"
 	"github.com/nicola-strappazzon/dacfy/terminal"
@@ -24,7 +25,7 @@ var tt = terminal.Terminal{}
 type progressHandler struct{}
 
 func init() {
-	ch.SetLogger(progressHandler{})
+	// ch.SetLogger(progressHandler{})
 }
 
 func main() {
@@ -92,7 +93,7 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 	}
 }
 
-func (progressHandler) WriteProgress(in clickhouse.Progress) {
-	tt.New()
-	tt.Write(in.ToString())
-}
+// func (progressHandler) WriteProgress(in clickhouse.Progress) {
+	// tt.New()
+	// tt.Write(in.ToString())
+// }

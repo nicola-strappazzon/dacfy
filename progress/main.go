@@ -1,4 +1,4 @@
-package clickhouse
+package progress
 
 import (
 	"fmt"
@@ -7,8 +7,49 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nicola-strappazzon/dacfy/clickhouse"
 	"github.com/nicola-strappazzon/dacfy/human"
 )
+
+// import (
+// 	"errors"
+// 	"regexp"
+
+// 	
+// 	"github.com/nicola-strappazzon/dacfy/strings"
+// )
+
+var ch = clickhouse.Instance()
+
+type Process struct {
+	QueryID string
+}
+
+func (p Process) Statement() string {
+	sql := strings.Builder{}
+	sql.WriteString("SELECT ")
+	sql.WriteString("toUInt64(memory_usage) AS memory, ")
+	sql.WriteString("toUInt64(peak_memory_usage) AS PeakMemory, ")
+	sql.WriteString("ProfileEvents['OSCPUVirtualTimeMicroseconds'] / 100000 AS cpu ")
+	sql.WriteString("FROM system.processes ")
+	sql.WriteString("WHERE query_id = '")
+	sql.WriteString(p.QueryID)
+	sql.WriteString("'")
+
+	return sql.String()
+}
+
+func (p Process) Gather() error {
+	if ch.IsNotConnected() {
+		return nil
+	}
+
+	if err := ch.Connection.QueryRow(ch.Context, p.Statement()).Scan(&ch.Progress.Memory, &ch.Progress.PeakMemory, &ch.Progress.CPU); err != nil {
+		return err
+	}
+
+	return nil
+}
 
 type LoggerProgress interface {
 	WriteProgress(in Progress)
@@ -89,4 +130,13 @@ func (p Progress) ToString() string {
 	p.Text.WriteString(human.Duration(p.Elapsed()))
 
 	return p.Text.String()
+}
+
+func (ch *ClickHouse) WriteProcess() {
+	ch.GatherSystemProcess()
+	loggerProgress.WriteProgress(ch.Progress)
+}
+
+func (ch *ClickHouse) SetLogger(in LoggerProgress) {
+	loggerProgress = in
 }

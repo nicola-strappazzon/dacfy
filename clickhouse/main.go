@@ -27,7 +27,6 @@ func Instance() *ClickHouse {
 type ClickHouse struct {
 	Connection driver.Conn
 	QueryID    string
-	Progress   Progress
 	Context    context.Context
 }
 
@@ -98,44 +97,25 @@ func (ch *ClickHouse) ExecuteWitchOutLogger(in string) error {
 }
 
 func (ch *ClickHouse) ExecuteWitchLogger(in string) error {
-	ch.Progress.StartNow()
+	// ch.Progress.StartNow()
 	ch.NewQueryID()
 
 	ctx := clickhouse.Context(context.Background(),
 		clickhouse.WithQueryID(ch.QueryID),
-		clickhouse.WithProgress(func(p *clickhouse.Progress) {
-			ch.Progress.SetReadRows(p.Rows)
-			ch.Progress.SetReadBytes(p.Bytes)
-			ch.Progress.SetTotalRows(p.TotalRows)
+		// clickhouse.WithProgress(func(p *clickhouse.Progress) {
+		// 	ch.Progress.SetReadRows(p.Rows)
+		// 	ch.Progress.SetReadBytes(p.Bytes)
+		// 	ch.Progress.SetTotalRows(p.TotalRows)
 
-			go ch.WriteProcess()
-		}),
+		// 	// go ch.WriteProcess()
+		// }),
 	)
 
 	if err := ch.Connection.Exec(ctx, in); err != nil {
 		return err
 	}
 
-	ch.WriteProcess()
-
-	return nil
-}
-
-func (ch *ClickHouse) WriteProcess() {
-	ch.GatherSystemProcess()
-	loggerProgress.WriteProgress(ch.Progress)
-}
-
-func (ch *ClickHouse) GatherSystemProcess() error {
-	if ch.IsNotConnected() {
-		return nil
-	}
-
-	sql := fmt.Sprintf("SELECT toUInt64(memory_usage) AS memory, toUInt64(peak_memory_usage) AS PeakMemory, ProfileEvents['OSCPUVirtualTimeMicroseconds'] / 100000 AS cpu FROM system.processes WHERE query_id = '%s'", ch.QueryID)
-
-	if err := ch.Connection.QueryRow(ch.Context, sql).Scan(&ch.Progress.Memory, &ch.Progress.PeakMemory, &ch.Progress.CPU); err != nil {
-		return err
-	}
+	// ch.WriteProcess()
 
 	return nil
 }
@@ -151,10 +131,6 @@ func (ch *ClickHouse) DatabaseExists(in string) (out bool) {
 	).Scan(&out)
 
 	return out
-}
-
-func (ch *ClickHouse) SetLogger(in LoggerProgress) {
-	loggerProgress = in
 }
 
 func (ch *ClickHouse) IsNotConnected() bool {
