@@ -1,6 +1,7 @@
 package pipelines
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/nicola-strappazzon/dacfy/file"
@@ -37,6 +38,12 @@ func (p *Pipelines) Load() error {
 	f, err := os.ReadFile(p.Config.Pipe)
 	if err != nil {
 		return err
+	}
+
+	for _, v := range file.FindEnvVars(f) {
+		if _, ok := os.LookupEnv(v); !ok {
+			return fmt.Errorf("Environment variable %q referenced in configuration file is not defined.", v)
+		}
 	}
 
 	return yaml.Unmarshal(file.ReadExpandEnv(f), p)
