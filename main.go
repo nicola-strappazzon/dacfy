@@ -90,6 +90,8 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
+
+	fmt.Fprintln(rootCmd.OutOrStdout(), "--> Executed successfully.")
 }
 
 func (progressHandler) WriteProgress(in clickhouse.Progress) {
