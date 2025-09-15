@@ -42,10 +42,10 @@ func Run(cmd *cobra.Command) (err error) {
 	queries := []struct {
 		Message   string
 		Statement string
-		Ignore    bool
+		Continue  bool
 	}{
 		{
-			Ignore:    ch.DatabaseExists(pl.Database.Name.ToString()),
+			Continue:  ch.DatabaseExists(pl.Database.Name.ToString()),
 			Statement: pl.Database.Create().SQL(),
 			Message:   fmt.Sprintf("Create database: %s", pl.Database.Name.ToString()),
 		},
@@ -53,6 +53,7 @@ func Run(cmd *cobra.Command) (err error) {
 			Statement: pl.Database.Use().SQL(),
 		},
 		{
+			Continue:  ch.TableExists(pl.Database.Name.ToString(), pl.Table.SetSuffix(pl.Config.Suffix).Name.ToString()),
 			Statement: pl.Table.SetSuffix(pl.Config.Suffix).Create().SQL(),
 			Message:   fmt.Sprintf("Create table: %s", pl.Table.SetSuffix(pl.Config.Suffix).Name.ToString()),
 		},
@@ -63,7 +64,7 @@ func Run(cmd *cobra.Command) (err error) {
 	}
 
 	for _, query := range queries {
-		if query.Ignore {
+		if query.Continue {
 			continue
 		}
 

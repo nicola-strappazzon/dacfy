@@ -153,6 +153,19 @@ func (ch *ClickHouse) DatabaseExists(in string) (out bool) {
 	return out
 }
 
+func (ch *ClickHouse) TableExists(database, table string) (out bool) {
+	if ch.IsNotConnected() {
+		return out
+	}
+
+	ch.Connection.QueryRow(
+		ch.Context,
+		fmt.Sprintf("SELECT true FROM system.tables WHERE engine LIKE '%%MergeTree' AND database = '%s' AND name = '%s';", database, table),
+	).Scan(&out)
+
+	return out
+}
+
 func (ch *ClickHouse) SetLogger(in LoggerProgress) {
 	loggerProgress = in
 }
