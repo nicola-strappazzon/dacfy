@@ -9,6 +9,41 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestFindEnvVars(t *testing.T) {
+	cases := []struct {
+		name string
+		in   []byte
+		want []string
+	}{
+		{
+			name: "Exist env var",
+			in:   []byte("valor=${FOO}"),
+			want: []string{"FOO"},
+		},
+		{
+			name: "Unexisted env var",
+			in:   []byte("value=${BAZ}"),
+			want: []string{"BAZ"},
+		},
+		{
+			name: "String without env var",
+			in:   []byte("plain text"),
+			want: []string(nil),
+		},
+		{
+			name: "Empty string",
+			in:   []byte(""),
+			want: []string(nil),
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			assert.Equal(t, file.FindEnvVars(c.in), c.want)
+		})
+	}
+}
+
 func TestReadExpandEnv(t *testing.T) {
 	os.Setenv("FOO", "bar")
 	defer os.Unsetenv("FOO")
