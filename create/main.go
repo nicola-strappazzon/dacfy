@@ -58,6 +58,7 @@ func Run(cmd *cobra.Command) (err error) {
 			Message:   fmt.Sprintf("Create table: %s", pl.Table.SetSuffix(pl.Config.Suffix).Name.ToString()),
 		},
 		{
+			Continue:  ch.TableExists(pl.Database.Name.ToString(), pl.View.SetSuffix(pl.Config.Suffix).Name.ToString()),
 			Statement: pl.View.SetSuffix(pl.Config.Suffix).Create().SQL(),
 			Message:   fmt.Sprintf("Create view: %s", pl.View.SetSuffix(pl.Config.Suffix).Name.ToString()),
 		},

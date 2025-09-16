@@ -57,10 +57,6 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 
 				pl.SetParents()
 
-				if ok, _ := cmd.Flags().GetBool("dry-run"); ok {
-					return
-				}
-
 				return ch.Connect()
 			}
 			if pl.Config.Pipe == "" {

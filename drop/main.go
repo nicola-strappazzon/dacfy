@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/nicola-strappazzon/dacfy/clickhouse"
+	"github.com/nicola-strappazzon/dacfy/gather"
 	"github.com/nicola-strappazzon/dacfy/pipelines"
 	"github.com/nicola-strappazzon/dacfy/strings"
 
@@ -26,6 +27,25 @@ func NewCommand() *cobra.Command {
 	return cmd
 }
 
+func Dependency() error {
+	tables := gather.Tables{}
+	if err := tables.Load(pl.Database.Name.ToString()); err != nil {
+		return err
+	}
+
+	table := tables.Get(pl.Table.SetSuffix(pl.Config.Suffix).Name.ToString())
+
+	if table.Dependencies.Tables.IsNotEmpty() {
+		return fmt.Errorf(
+			"Cannot run drop command, the table %s is referenced by views: %v. Please drop the views first before continuing.",
+			pl.Table.SetSuffix(pl.Config.Suffix).Name.ToString(),
+			table.Dependencies.Tables,
+		)
+	}
+
+	return nil
+}
+
 func Run() (err error) {
 	if err = pl.Database.Validate(); err != nil {
 		return err
@@ -36,6 +56,10 @@ func Run() (err error) {
 	}
 
 	if err = pl.View.Validate(); err != nil {
+		return err
+	}
+
+	if err = Dependency(); err != nil {
 		return err
 	}
 

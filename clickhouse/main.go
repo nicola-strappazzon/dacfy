@@ -160,7 +160,7 @@ func (ch *ClickHouse) TableExists(database, table string) (out bool) {
 
 	ch.Connection.QueryRow(
 		ch.Context,
-		fmt.Sprintf("SELECT true FROM system.tables WHERE engine LIKE '%%MergeTree' AND database = '%s' AND name = '%s';", database, table),
+		fmt.Sprintf("SELECT true FROM system.tables WHERE (engine LIKE '%%MergeTree' OR engine LIKE '%%View') AND database = '%s' AND name = '%s';", database, table),
 	).Scan(&out)
 
 	return out

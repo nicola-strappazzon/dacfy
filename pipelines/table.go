@@ -11,7 +11,6 @@ import (
 type Table struct {
 	Columns     columns.Map     `yaml:"columns"`
 	Delete      bool            `yaml:"delete"`
-	DependsOn   []string        `yaml:"-"`
 	Engine      Engine          `yaml:"engine"`
 	Name        Name            `yaml:"name"`
 	OrderBy     columns.Array   `yaml:"order_by"`
