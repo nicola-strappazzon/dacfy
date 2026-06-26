@@ -32,7 +32,7 @@ func main() {
 		Use: "dacfy [COMMANDS] [OPTIONS]",
 		Long: `ClickHouse Data as Code - A simple way to use pipelines for data transformation.
 
-  You can define your databases, tables, materialized views, and populate or 
+  You can define your databases, tables, materialized views, and populate or
 backfill them, all in a single step using a YAML file. Then, create everything
 from the terminal and rollback just as easily, without effort or added complexity.
 
@@ -42,6 +42,14 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 				cmd.Help()
 				return
 			}
+		},
+		PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
+			switch cmd.Name() {
+			case "dacfy", "help", "version":
+				return nil
+			}
+			fmt.Fprintln(cmd.OutOrStdout(), "--> Executed successfully.")
+			return nil
 		},
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) == 0 {
@@ -86,8 +94,6 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
-
-	fmt.Fprintln(rootCmd.OutOrStdout(), "--> Executed successfully.")
 }
 
 func (progressHandler) WriteProgress(in clickhouse.Progress) {
