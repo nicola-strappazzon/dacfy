@@ -3,6 +3,7 @@ package pipelines
 import (
 	"fmt"
 	"reflect"
+	gstrings "strings"
 
 	"github.com/nicola-strappazzon/dacfy/pipelines/columns"
 	"github.com/nicola-strappazzon/dacfy/strings"
@@ -19,9 +20,22 @@ type Table struct {
 	PartitionBy columns.Array   `yaml:"partition_by"`
 	PrimaryKey  columns.Array   `yaml:"primary_key"`
 	Query       Query           `yaml:"query"`
+	Require     []string        `yaml:"require"`
 	Settings    []string        `yaml:"settings"`
 	Statement   strings.Builder `yaml:"-"`
 	TTL         string          `yaml:"ttl"`
+}
+
+func (t Table) HasRequire() bool {
+	return len(t.Require) > 0
+}
+
+func (t Table) ParseRequireItem(item string) (database, name string) {
+	if db, n, ok := gstrings.Cut(item, "."); ok {
+		return db, n
+	}
+
+	return t.Parent.Database.Name.ToString(), item
 }
 
 func (t Table) SetName(in string) Table {
