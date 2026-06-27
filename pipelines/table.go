@@ -12,6 +12,7 @@ type Table struct {
 	Columns     columns.Map     `yaml:"columns"`
 	Delete      bool            `yaml:"delete"`
 	Engine      Engine          `yaml:"engine"`
+	MongoDB     MongoDB         `yaml:"mongodb"`
 	Name        Name            `yaml:"name"`
 	OrderBy     columns.Array   `yaml:"order_by"`
 	Parent      *Pipelines      `yaml:"-"`
@@ -52,6 +53,12 @@ func (t Table) Create() Table {
 	t.Statement.WriteString(" (")
 	t.Statement.WriteString(t.Columns.JoinWithTypes())
 	t.Statement.WriteString(") ")
+
+	if t.Engine.IsMongoDB() {
+		t.Statement.WriteString("ENGINE=")
+		t.Statement.WriteString(t.MongoDB.EngineString())
+		return t
+	}
 
 	if t.Engine.IsNotEmpty() {
 		t.Statement.WriteString("ENGINE=")
@@ -168,6 +175,10 @@ func (t Table) Validate() error {
 
 	if t.Engine.IsEmpty() {
 		return fmt.Errorf("table.engine is required for table %q", t.Name.ToString())
+	}
+
+	if t.Engine.IsMongoDB() {
+		return t.MongoDB.Validate()
 	}
 
 	if cols, ok := t.PartitionBy.NotIn(t.Columns.ToArray()); ok {
