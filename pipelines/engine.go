@@ -17,3 +17,7 @@ func (e Engine) IsEmpty() bool {
 func (e Engine) IsNotEmpty() bool {
 	return !e.IsEmpty()
 }
+
+func (e Engine) IsMongoDB() bool {
+	return e.ToString() == "MongoDB"
+}

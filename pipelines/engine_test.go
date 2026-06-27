@@ -52,6 +52,7 @@ func TestEngine_IsEmpty_And_IsNotEmpty(t *testing.T) {
 		{"buffer", "Buffer", false},
 		{"tiny log", "TinyLog", false},
 		{"stripe log", "StripeLog", false},
+		{"mongodb", "MongoDB", false},
 	}
 
 	for _, tc := range cases {
