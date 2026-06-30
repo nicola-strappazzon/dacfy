@@ -39,6 +39,13 @@ func Run(cmd *cobra.Command) (err error) {
 		return err
 	}
 
+	for _, item := range pl.Table.Require {
+		db, name := pl.Table.ParseRequireItem(item)
+		if !ch.TableExists(db, name) {
+			return fmt.Errorf("required object %q does not exist", item)
+		}
+	}
+
 	queries := []struct {
 		Message   string
 		Statement string

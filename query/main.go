@@ -26,6 +26,13 @@ func NewCommand() *cobra.Command {
 }
 
 func Run() (err error) {
+	for _, item := range pl.Table.Require {
+		db, name := pl.Table.ParseRequireItem(item)
+		if !ch.TableExists(db, name) {
+			return fmt.Errorf("required object %q does not exist", item)
+		}
+	}
+
 	if pl.Table.Query.IsEmpty() && pl.View.Query.IsEmpty() {
 		return
 	}
