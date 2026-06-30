@@ -23,3 +23,11 @@ func IsNotEmpty(in string) bool {
 func Contains(s, substr string) bool {
 	return strings.Contains(s, substr)
 }
+
+func ReplaceAll(s, old, new string) string {
+	return strings.ReplaceAll(s, old, new)
+}
+
+func TrimRight(s, cutset string) string {
+	return strings.TrimRight(s, cutset)
+}
