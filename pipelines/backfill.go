@@ -40,6 +40,14 @@ func (b Backfill) Do() Backfill {
 	}
 
 	b.Statement = strings.Builder{}
+	b.writeInsertInto()
+	b.Statement.WriteString(b.Parent.View.Query.Minify())
+	b.writeSettings()
+
+	return b
+}
+
+func (b *Backfill) writeInsertInto() {
 	b.Statement.WriteString("INSERT INTO ")
 	b.Statement.WriteString(b.Parent.Database.Name.ToString())
 	b.Statement.WriteString(".")
@@ -53,20 +61,90 @@ func (b Backfill) Do() Backfill {
 		b.Statement.WriteString(" (")
 		b.Statement.WriteString(b.Parent.Table.Columns.JoinWithoutTypes())
 		b.Statement.WriteString(") ")
+	} else {
+		b.Statement.WriteString(" ")
 	}
+}
 
-	b.Statement.WriteString(b.Parent.View.Query.Minify())
-
+func (b *Backfill) writeSettings() {
 	if len(b.Parent.View.Settings) > 0 {
 		b.Statement.WriteString(" SETTINGS ")
 		b.Statement.WriteString(strings.Join(b.Parent.View.Settings))
 	}
+}
+
+func (b Backfill) Where() Where {
+	if b.Parent.View.Backfill.Where.IsNotEmpty() {
+		return b.Parent.View.Backfill.Where
+	}
+
+	return b.Parent.Table.Backfill.Where
+}
+
+func (b Backfill) DoChunk(dateFrom, dateTo string) Backfill {
+	where := strings.ReplaceAll(b.Where().ToString(), "{date_from}", dateFrom)
+	where = strings.ReplaceAll(where, "{date_to}", dateTo)
+
+	if b.Parent.View.Materialized && b.Parent.View.Query.IsNotEmpty() {
+		return b.doChunkFromView(where)
+	}
+
+	if b.Parent.Table.Query.IsNotEmpty() {
+		return b.doChunkFromTableQuery(where)
+	}
+
+	return b
+}
+
+func (b Backfill) doChunkFromView(where string) Backfill {
+	if b.Parent.View.Populate.IsNotBackFill() {
+		return b
+	}
+
+	if b.Parent.Database.Name.IsEmpty() || b.Parent.View.To.IsEmpty() {
+		return b
+	}
+
+	b.Statement = strings.Builder{}
+	b.writeInsertInto()
+	b.Statement.WriteString("SELECT * FROM (")
+	b.Statement.WriteString(b.Parent.View.Query.Minify())
+	b.Statement.WriteString(") WHERE ")
+	b.Statement.WriteString(where)
+	b.writeSettings()
+
+	return b
+}
+
+func (b Backfill) doChunkFromTableQuery(where string) Backfill {
+	q := strings.TrimRight(b.Parent.Table.Query.Minify(), "; ")
+
+	b.Statement = strings.Builder{}
+	b.Statement.WriteString(q)
+	b.Statement.WriteString(" WHERE ")
+	b.Statement.WriteString(where)
 
 	return b
 }
 
 func (b Backfill) SQL() string {
 	return b.Statement.String()
+}
+
+func (b Backfill) ValidateChunk() error {
+	if b.Where().IsEmpty() {
+		return fmt.Errorf("table.backfill.where or view.backfill.where is required when using --from/--to")
+	}
+
+	if b.Parent.View.Materialized {
+		return b.Validate()
+	}
+
+	if b.Parent.Table.Query.IsEmpty() {
+		return fmt.Errorf("table.query is required for chunk backfill without a view")
+	}
+
+	return nil
 }
 
 func (b Backfill) Validate() error {

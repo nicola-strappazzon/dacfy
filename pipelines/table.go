@@ -9,7 +9,26 @@ import (
 	"github.com/nicola-strappazzon/dacfy/strings"
 )
 
+type Where string
+
+func (w Where) ToString() string {
+	return strings.TrimSpace(string(w))
+}
+
+func (w Where) IsEmpty() bool {
+	return strings.IsEmpty(w.ToString())
+}
+
+func (w Where) IsNotEmpty() bool {
+	return !w.IsEmpty()
+}
+
+type TableBackfill struct {
+	Where Where `yaml:"where"`
+}
+
 type Table struct {
+	Backfill    TableBackfill   `yaml:"backfill"`
 	Columns     columns.Map     `yaml:"columns"`
 	Delete      bool            `yaml:"delete"`
 	Engine      Engine          `yaml:"engine"`
