@@ -106,7 +106,7 @@ func Run() (err error) {
 			continue
 		}
 
-		if strings.IsNotEmpty(query.Message) {
+		if !pl.Config.DryRun && strings.IsNotEmpty(query.Message) {
 			fmt.Println("-->", query.Message)
 		}
 

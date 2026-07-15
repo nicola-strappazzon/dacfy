@@ -38,7 +38,9 @@ func Run() (err error) {
 	}
 
 	if pl.Table.Query.IsNotEmpty() {
-		fmt.Println("--> Running table query:")
+		if !pl.Config.DryRun {
+			fmt.Println("--> Running table query:")
+		}
 
 		if pl.Config.SQL {
 			fmt.Println(pl.Table.Query.ToString() + ";")
@@ -60,7 +62,9 @@ func Run() (err error) {
 	}
 
 	if pl.View.Query.IsNotEmpty() {
-		fmt.Println("--> Running view query:")
+		if !pl.Config.DryRun {
+			fmt.Println("--> Running view query:")
+		}
 
 		if pl.Config.SQL {
 			fmt.Println(pl.View.Query.ToString() + ";")
