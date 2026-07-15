@@ -9,9 +9,24 @@ import (
 )
 
 type Database struct {
-	Name      Name            `yaml:"name"`
-	Delete    bool            `yaml:"delete"`
-	Statement strings.Builder `yaml:"-"`
+	Cluster    Name               `yaml:"cluster"`
+	Delete     bool               `yaml:"delete"`
+	Name       Name               `yaml:"name"`
+	Replicated DatabaseReplicated `yaml:"replicated"`
+	Statement  strings.Builder    `yaml:"-"`
+}
+
+type DatabaseReplicated struct {
+	Path    string `yaml:"path"`
+	Replica string `yaml:"replica"`
+}
+
+func (r DatabaseReplicated) IsEmpty() bool {
+	return strings.IsEmpty(r.Path) && strings.IsEmpty(r.Replica)
+}
+
+func (r DatabaseReplicated) IsNotEmpty() bool {
+	return !r.IsEmpty()
 }
 
 func (d Database) Create() Database {
@@ -19,6 +34,19 @@ func (d Database) Create() Database {
 		d.Statement = strings.Builder{}
 		d.Statement.WriteString("CREATE DATABASE IF NOT EXISTS ")
 		d.Statement.WriteString(d.Name.ToString())
+
+		if d.Cluster.IsNotEmpty() {
+			d.Statement.WriteString(" ON CLUSTER ")
+			d.Statement.WriteString(d.Cluster.ToString())
+		}
+
+		if d.Replicated.IsNotEmpty() {
+			d.Statement.WriteString(" ENGINE = Replicated('")
+			d.Statement.WriteString(d.Replicated.Path)
+			d.Statement.WriteString("', '")
+			d.Statement.WriteString(d.Replicated.Replica)
+			d.Statement.WriteString("')")
+		}
 	}
 
 	return d
@@ -29,6 +57,11 @@ func (d Database) Drop() Database {
 		d.Statement = strings.Builder{}
 		d.Statement.WriteString("DROP DATABASE IF EXISTS ")
 		d.Statement.WriteString(d.Name.ToString())
+
+		if d.Cluster.IsNotEmpty() {
+			d.Statement.WriteString(" ON CLUSTER ")
+			d.Statement.WriteString(d.Cluster.ToString())
+		}
 	}
 
 	return d
@@ -63,6 +96,20 @@ func (d Database) Validate() error {
 
 	if d.Name.IsNotValid() {
 		return fmt.Errorf("database.name %q is invalid; must start with a letter and contain only letters, digits or underscores (max 255 characters)", d.Name.ToString())
+	}
+
+	if d.Cluster.IsNotEmpty() && d.Cluster.IsNotValid() {
+		return fmt.Errorf("database.cluster %q is invalid; must start with a letter and contain only letters, digits or underscores (max 255 characters)", d.Cluster.ToString())
+	}
+
+	if d.Replicated.IsNotEmpty() {
+		if strings.IsEmpty(d.Replicated.Path) {
+			return fmt.Errorf("database.replicated.path is required")
+		}
+
+		if strings.IsEmpty(d.Replicated.Replica) {
+			return fmt.Errorf("database.replicated.replica is required")
+		}
 	}
 
 	return nil

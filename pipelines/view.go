@@ -32,6 +32,14 @@ func (v View) SetSuffix(in string) View {
 	return v
 }
 
+func (v View) IsEmpty() bool {
+	return reflect.DeepEqual(v, View{Parent: v.Parent})
+}
+
+func (v View) IsNotEmpty() bool {
+	return !v.IsEmpty()
+}
+
 func (v View) Drop() View {
 	if v.Parent.Database.Name.IsEmpty() {
 		return v
@@ -148,7 +156,7 @@ func (v View) SQL() string {
 }
 
 func (v View) Validate() error {
-	if reflect.DeepEqual(v, View{Parent: v.Parent}) {
+	if v.IsEmpty() {
 		return nil
 	}
 

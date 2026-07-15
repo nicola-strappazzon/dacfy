@@ -20,6 +20,28 @@ func TestDatabase_Create(t *testing.T) {
 		assert.Empty(t, d.SQL())
 	})
 
+	t.Run("with cluster", func(t *testing.T) {
+		d := pipelines.Database{
+			Cluster: pipelines.Name("zynap_prd"),
+			Name:    pipelines.Name("malware_search"),
+		}
+
+		assert.Equal(t, "CREATE DATABASE IF NOT EXISTS malware_search ON CLUSTER zynap_prd", d.Create().SQL())
+	})
+
+	t.Run("with replicated engine", func(t *testing.T) {
+		d := pipelines.Database{
+			Cluster: pipelines.Name("zynap_prd"),
+			Name:    pipelines.Name("malware_search"),
+			Replicated: pipelines.DatabaseReplicated{
+				Path:    "/clickhouse/databases/malware_search",
+				Replica: "{replica}",
+			},
+		}
+
+		assert.Equal(t, "CREATE DATABASE IF NOT EXISTS malware_search ON CLUSTER zynap_prd ENGINE = Replicated('/clickhouse/databases/malware_search', '{replica}')", d.Create().SQL())
+	})
+
 	t.Run("empty name -> no statement", func(t *testing.T) {
 		d := pipelines.Database{}
 
@@ -35,6 +57,15 @@ func TestDatabase_Drop(t *testing.T) {
 
 		assert.Equal(t, "DROP DATABASE IF EXISTS foo", d.Drop().SQL())
 		assert.Empty(t, d.SQL())
+	})
+
+	t.Run("with cluster", func(t *testing.T) {
+		d := pipelines.Database{
+			Cluster: pipelines.Name("zynap_prd"),
+			Name:    pipelines.Name("malware_search"),
+		}
+
+		assert.Equal(t, "DROP DATABASE IF EXISTS malware_search ON CLUSTER zynap_prd", d.Drop().SQL())
 	})
 
 	t.Run("empty name -> no statement", func(t *testing.T) {
@@ -123,6 +154,52 @@ func TestDatabase_Validate(t *testing.T) {
 	t.Run("valid: with underscore and digits", func(t *testing.T) {
 		d := pipelines.Database{
 			Name: pipelines.Name("foo_1"),
+		}
+		assert.NoError(t, d.Validate())
+	})
+
+	t.Run("invalid cluster", func(t *testing.T) {
+		d := pipelines.Database{
+			Cluster: pipelines.Name("zynap-prd"),
+			Name:    pipelines.Name("foo"),
+		}
+		e := d.Validate()
+		assert.Error(t, e)
+		assert.Equal(t, `database.cluster "zynap-prd" is invalid; must start with a letter and contain only letters, digits or underscores (max 255 characters)`, e.Error())
+	})
+
+	t.Run("replicated missing path", func(t *testing.T) {
+		d := pipelines.Database{
+			Name: pipelines.Name("foo"),
+			Replicated: pipelines.DatabaseReplicated{
+				Replica: "{replica}",
+			},
+		}
+		e := d.Validate()
+		assert.Error(t, e)
+		assert.Equal(t, "database.replicated.path is required", e.Error())
+	})
+
+	t.Run("replicated missing replica", func(t *testing.T) {
+		d := pipelines.Database{
+			Name: pipelines.Name("foo"),
+			Replicated: pipelines.DatabaseReplicated{
+				Path: "/clickhouse/databases/foo",
+			},
+		}
+		e := d.Validate()
+		assert.Error(t, e)
+		assert.Equal(t, "database.replicated.replica is required", e.Error())
+	})
+
+	t.Run("valid replicated", func(t *testing.T) {
+		d := pipelines.Database{
+			Cluster: pipelines.Name("zynap_prd"),
+			Name:    pipelines.Name("malware_search"),
+			Replicated: pipelines.DatabaseReplicated{
+				Path:    "/clickhouse/databases/malware_search",
+				Replica: "{replica}",
+			},
 		}
 		assert.NoError(t, d.Validate())
 	})

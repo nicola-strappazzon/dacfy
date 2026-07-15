@@ -46,13 +46,15 @@ func Run(cmd *cobra.Command) (err error) {
 		}
 	}
 
+	createDatabase := pl.Table.IsEmpty() && pl.View.IsEmpty()
+
 	queries := []struct {
 		Message   string
 		Statement string
 		Continue  bool
 	}{
 		{
-			Continue:  ch.DatabaseExists(pl.Database.Name.ToString()),
+			Continue:  !createDatabase || (!pl.Config.DryRun && ch.DatabaseExists(pl.Database.Name.ToString())),
 			Statement: pl.Database.Create().SQL(),
 			Message:   fmt.Sprintf("Create database: %s", pl.Database.Name.ToString()),
 		},
@@ -60,12 +62,12 @@ func Run(cmd *cobra.Command) (err error) {
 			Statement: pl.Database.Use().SQL(),
 		},
 		{
-			Continue:  ch.TableExists(pl.Database.Name.ToString(), pl.Table.SetSuffix(pl.Config.Suffix).Name.ToString()),
+			Continue:  !pl.Config.DryRun && ch.TableExists(pl.Database.Name.ToString(), pl.Table.SetSuffix(pl.Config.Suffix).Name.ToString()),
 			Statement: pl.Table.SetSuffix(pl.Config.Suffix).Create().SQL(),
 			Message:   fmt.Sprintf("Create table: %s", pl.Table.SetSuffix(pl.Config.Suffix).Name.ToString()),
 		},
 		{
-			Continue:  ch.TableExists(pl.Database.Name.ToString(), pl.View.SetSuffix(pl.Config.Suffix).Name.ToString()),
+			Continue:  !pl.Config.DryRun && ch.TableExists(pl.Database.Name.ToString(), pl.View.SetSuffix(pl.Config.Suffix).Name.ToString()),
 			Statement: pl.View.SetSuffix(pl.Config.Suffix).Create().SQL(),
 			Message:   fmt.Sprintf("Create view: %s", pl.View.SetSuffix(pl.Config.Suffix).Name.ToString()),
 		},

@@ -2,6 +2,8 @@ package create_test
 
 import (
 	"bytes"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/nicola-strappazzon/dacfy/create"
@@ -25,41 +27,48 @@ func TestCommand(t *testing.T) {
 		PipeFile     string
 		ExactMatch   []string
 		PartialMatch []string
+		NotMatch     []string
 	}{
 		{
 			PipeFile: "../examples/wikistat/table.yaml",
 			ExactMatch: []string{
-				"--> Create database: wikistat",
-				"CREATE DATABASE IF NOT EXISTS wikistat;",
 				"USE wikistat;",
 				"--> Create table: wikistat",
 			},
 			PartialMatch: []string{
 				`CREATE TABLE IF NOT EXISTS wikistat.wikistat .*;`,
 			},
+			NotMatch: []string{
+				"--> Create database: wikistat",
+				"CREATE DATABASE IF NOT EXISTS wikistat;",
+			},
 		},
 		{
 			PipeFile: "../examples/wikistat/view.yaml",
 			ExactMatch: []string{
-				"--> Create database: wikistat",
-				"CREATE DATABASE IF NOT EXISTS wikistat;",
 				"USE wikistat;",
 				"--> Create table: wikistat_top_projects",
 			},
 			PartialMatch: []string{
 				`CREATE MATERIALIZED VIEW IF NOT EXISTS wikistat.wikistat_top_projects_mv TO wikistat.wikistat_top_projects AS SELECT .*;`,
 			},
+			NotMatch: []string{
+				"--> Create database: wikistat",
+				"CREATE DATABASE IF NOT EXISTS wikistat;",
+			},
 		},
 		{
 			PipeFile: "../examples/download/view.yaml",
 			ExactMatch: []string{
-				"--> Create database: download",
-				"CREATE DATABASE IF NOT EXISTS download;",
 				"USE download;",
 				"--> Create view: download_daily_mv",
 			},
 			PartialMatch: []string{
 				`CREATE VIEW IF NOT EXISTS download.download_daily_mv AS SELECT .*;`,
+			},
+			NotMatch: []string{
+				"--> Create database: download",
+				"CREATE DATABASE IF NOT EXISTS download;",
 			},
 		},
 	}
@@ -86,6 +95,39 @@ func TestCommand(t *testing.T) {
 			for _, regex := range tc.PartialMatch {
 				assert.Regexp(t, regex, out)
 			}
+
+			for _, substring := range tc.NotMatch {
+				assert.NotContains(t, out, substring)
+			}
 		})
 	}
+}
+
+func TestCommand_DatabaseOnly(t *testing.T) {
+	pipe := filepath.Join(t.TempDir(), "database.yaml")
+	err := os.WriteFile(pipe, []byte(`---
+database:
+  name: malware_search
+  cluster: zynap_prd
+  replicated:
+    path: /clickhouse/databases/malware_search
+    replica: "{replica}"
+`), 0600)
+	assert.NoError(t, err)
+
+	var buf bytes.Buffer
+
+	load(pipe)
+
+	cmd := create.NewCommand()
+	cmd.SetOut(&buf)
+	cmd.SetErr(&buf)
+
+	err = cmd.Execute()
+	out := buf.String()
+
+	assert.NoError(t, err)
+	assert.Contains(t, out, "--> Create database: malware_search")
+	assert.Contains(t, out, "CREATE DATABASE IF NOT EXISTS malware_search ON CLUSTER zynap_prd ENGINE = Replicated('/clickhouse/databases/malware_search', '{replica}');")
+	assert.Contains(t, out, "USE malware_search;")
 }
