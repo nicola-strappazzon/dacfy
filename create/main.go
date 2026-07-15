@@ -82,7 +82,7 @@ func Run(cmd *cobra.Command) (err error) {
 			continue
 		}
 
-		if strings.IsNotEmpty(query.Message) {
+		if !pl.Config.DryRun && strings.IsNotEmpty(query.Message) {
 			fmt.Fprintln(cmd.OutOrStdout(), "-->", query.Message)
 		}
 

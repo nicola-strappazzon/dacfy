@@ -33,7 +33,6 @@ func TestCommand(t *testing.T) {
 			PipeFile: "../examples/wikistat/table.yaml",
 			ExactMatch: []string{
 				"USE wikistat;",
-				"--> Create table: wikistat",
 			},
 			PartialMatch: []string{
 				`CREATE TABLE IF NOT EXISTS wikistat.wikistat .*;`,
@@ -47,7 +46,6 @@ func TestCommand(t *testing.T) {
 			PipeFile: "../examples/wikistat/view.yaml",
 			ExactMatch: []string{
 				"USE wikistat;",
-				"--> Create table: wikistat_top_projects",
 			},
 			PartialMatch: []string{
 				`CREATE MATERIALIZED VIEW IF NOT EXISTS wikistat.wikistat_top_projects_mv TO wikistat.wikistat_top_projects AS SELECT .*;`,
@@ -61,7 +59,6 @@ func TestCommand(t *testing.T) {
 			PipeFile: "../examples/download/view.yaml",
 			ExactMatch: []string{
 				"USE download;",
-				"--> Create view: download_daily_mv",
 			},
 			PartialMatch: []string{
 				`CREATE VIEW IF NOT EXISTS download.download_daily_mv AS SELECT .*;`,
@@ -127,7 +124,7 @@ database:
 	out := buf.String()
 
 	assert.NoError(t, err)
-	assert.Contains(t, out, "--> Create database: malware_search")
+	assert.NotContains(t, out, "-->")
 	assert.Contains(t, out, "CREATE DATABASE IF NOT EXISTS malware_search ON CLUSTER zynap_prd ENGINE = Replicated('/clickhouse/databases/malware_search', '{replica}');")
 	assert.Contains(t, out, "USE malware_search;")
 }

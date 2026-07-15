@@ -97,7 +97,7 @@ func runFull() (err error) {
 			continue
 		}
 
-		if strings.IsNotEmpty(query.Message) {
+		if !pl.Config.DryRun && strings.IsNotEmpty(query.Message) {
 			fmt.Println("-->", query.Message)
 		}
 
@@ -119,7 +119,9 @@ func runFull() (err error) {
 }
 
 func runFullFromTableQuery() (err error) {
-	fmt.Println("--> Starting backfill from table query into:", pl.Table.Name.ToString())
+	if !pl.Config.DryRun {
+		fmt.Println("--> Starting backfill from table query into:", pl.Table.Name.ToString())
+	}
 
 	if pl.Config.SQL {
 		fmt.Println(pl.Table.Query.ToString() + ";")
@@ -169,7 +171,9 @@ func runChunked() (err error) {
 
 	if truncate {
 		stmt := pl.Table.SetSuffix(pl.Config.Suffix).Truncate().SQL()
-		fmt.Println("--> Truncate table:", pl.Table.SetSuffix(pl.Config.Suffix).Name.ToString())
+		if !pl.Config.DryRun {
+			fmt.Println("--> Truncate table:", pl.Table.SetSuffix(pl.Config.Suffix).Name.ToString())
+		}
 		if !pl.Config.DryRun {
 			if err := ch.Execute(stmt, false); err != nil {
 				return err
@@ -189,7 +193,9 @@ func runChunked() (err error) {
 		dateFrom := current.Format(dateFormat)
 		dateTo := next.Format(dateFormat)
 
-		fmt.Printf("--> Chunk %d/%d: %s => %s\n", i, total, dateFrom, dateTo)
+		if !pl.Config.DryRun {
+			fmt.Printf("--> Chunk %d/%d: %s => %s\n", i, total, dateFrom, dateTo)
+		}
 
 		q := pl.Backfill.Suffix(pl.Config.Suffix).DoChunk(dateFrom, dateTo)
 

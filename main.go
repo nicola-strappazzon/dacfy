@@ -48,6 +48,9 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 			case "dacfy", "help", "version":
 				return nil
 			}
+			if pl.Config.DryRun {
+				return nil
+			}
 			fmt.Fprintln(cmd.OutOrStdout(), "--> Executed successfully.")
 			return nil
 		},
