@@ -9,6 +9,7 @@ import (
 )
 
 type View struct {
+	Backfill     TableBackfill   `yaml:"backfill"`
 	Columns      columns.Map     `yaml:"columns"`
 	Delete       bool            `yaml:"delete"`
 	Engine       Engine          `yaml:"engine"`
