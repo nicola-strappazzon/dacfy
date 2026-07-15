@@ -1,0 +1,39 @@
+version: "3"
+
+tasks:
+  default:
+    desc: Show help
+    cmds:
+      - task --list
+
+  deps:
+    desc: Download dependencies
+    cmds:
+      - go mod tidy
+      - go mod download
+
+  build:
+    desc: Build binary
+    deps: [deps]
+    env:
+      CGO_ENABLED: "1"
+    sources:
+      - ./**/*.go
+    generates:
+      - dacfy
+    cmds:
+      - go build -ldflags "-s -w" -o dacfy .
+
+  completions:
+    desc: Generate bash completions
+    deps: [build]
+    cmds:
+      - mkdir -p completions
+      - ./dacfy completion bash > completions/dacfy.bash
+      - "echo Run: source completions/dacfy.bash"
+
+  tests:
+    desc: Run tests
+    deps: [build]
+    cmds:
+      - go test -v ./...

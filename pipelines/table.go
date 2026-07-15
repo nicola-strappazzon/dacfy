@@ -69,6 +69,14 @@ func (t Table) SetSuffix(in string) Table {
 	return t
 }
 
+func (t Table) IsEmpty() bool {
+	return reflect.DeepEqual(t, Table{Parent: t.Parent})
+}
+
+func (t Table) IsNotEmpty() bool {
+	return !t.IsEmpty()
+}
+
 func (t Table) Create() Table {
 	if t.Parent.Database.Name.IsEmpty() {
 		return t
@@ -190,7 +198,7 @@ func (t Table) SQL() string {
 }
 
 func (t Table) Validate() error {
-	if reflect.DeepEqual(t, Table{Parent: t.Parent}) {
+	if t.IsEmpty() {
 		return nil
 	}
 
