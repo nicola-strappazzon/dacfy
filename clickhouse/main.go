@@ -65,8 +65,10 @@ func (ch *ClickHouse) Connect() (err error) {
 		},
 	}
 
-	if pl.Config.TLS {
-		options.TLS = &tls.Config{}
+	if pl.Config.TLS || pl.Config.TLSInsecure {
+		options.TLS = &tls.Config{
+			InsecureSkipVerify: pl.Config.TLSInsecure,
+		}
 	}
 
 	ch.Connection, err = clickhouse.Open(options)
