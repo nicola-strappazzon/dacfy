@@ -87,6 +87,7 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 	rootCmd.PersistentFlags().BoolVar(&pl.Config.DryRun, "dry-run", false, "Show what would be executed without applying changes.")
 	rootCmd.PersistentFlags().BoolVar(&pl.Config.SQL, "sql", false, "Show SQL Statement.")
 	rootCmd.PersistentFlags().BoolVar(&pl.Config.TLS, "tls", false, "Enable TLS for the ClickHouse server.")
+	rootCmd.PersistentFlags().BoolVar(&pl.Config.TLSInsecure, "tls-insecure", false, "Enable TLS without verifying the server certificate (for custom or self-signed certs).")
 	rootCmd.AddCommand(backfill.NewCommand())
 	rootCmd.AddCommand(create.NewCommand())
 	rootCmd.AddCommand(drop.NewCommand())
