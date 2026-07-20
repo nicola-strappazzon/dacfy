@@ -26,6 +26,11 @@ func TestFindEnvVars(t *testing.T) {
 			want: []string{"BAZ"},
 		},
 		{
+			name: "Env var without braces",
+			in:   []byte("password='$MALWARE_PASSWORD'"),
+			want: []string{"MALWARE_PASSWORD"},
+		},
+		{
 			name: "String without env var",
 			in:   []byte("plain text"),
 			want: []string(nil),
