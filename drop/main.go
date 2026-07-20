@@ -2,6 +2,7 @@ package drop
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/nicola-strappazzon/dacfy/clickhouse"
 	"github.com/nicola-strappazzon/dacfy/gather"
@@ -46,7 +47,28 @@ func Dependency() error {
 	return nil
 }
 
-func Run() (err error) {
+func Run() error {
+	if len(pl.Pipelines) > 0 {
+		base := filepath.Dir(pl.Config.Pipe)
+		files := pl.Pipelines
+
+		for i := len(files) - 1; i >= 0; i-- {
+			if err := pl.LoadFile(filepath.Join(base, files[i])); err != nil {
+				return err
+			}
+
+			if err := run(); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+
+	return run()
+}
+
+func run() (err error) {
 	if err = pl.Database.Validate(); err != nil {
 		return err
 	}
@@ -103,7 +125,7 @@ func Run() (err error) {
 			continue
 		}
 
-		if !pl.Config.DryRun && strings.IsNotEmpty(query.Message) {
+		if !(pl.Config.DryRun && pl.Config.SQL) && strings.IsNotEmpty(query.Message) {
 			fmt.Println("-->", query.Message)
 		}
 

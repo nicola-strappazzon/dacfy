@@ -2,6 +2,7 @@ package create
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/nicola-strappazzon/dacfy/clickhouse"
 	"github.com/nicola-strappazzon/dacfy/pipelines"
@@ -26,7 +27,30 @@ func NewCommand() *cobra.Command {
 	return cmd
 }
 
-func Run(cmd *cobra.Command) (err error) {
+func Run(cmd *cobra.Command) error {
+	created := map[string]bool{}
+
+	if len(pl.Pipelines) > 0 {
+		base := filepath.Dir(pl.Config.Pipe)
+		files := pl.Pipelines
+
+		for _, file := range files {
+			if err := pl.LoadFile(filepath.Join(base, file)); err != nil {
+				return err
+			}
+
+			if err := run(cmd, created); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+
+	return run(cmd, created)
+}
+
+func run(cmd *cobra.Command, created map[string]bool) (err error) {
 	if err = pl.Database.Validate(); err != nil {
 		return err
 	}
@@ -45,9 +69,29 @@ func Run(cmd *cobra.Command) (err error) {
 
 	for _, item := range pl.Table.Require {
 		db, name := pl.Table.ParseRequireItem(item)
-		if !ch.TableExists(db, name) {
-			return fmt.Errorf("required object %q does not exist", item)
+
+		// Satisfied if an earlier pipeline of this run creates it, or it
+		// already exists on the server.
+		if created[db+"."+name] || ch.TableExists(db, name) {
+			continue
 		}
+
+		// In dry-run nothing is executed, so we cannot confirm objects
+		// against the server: warn instead of failing.
+		if pl.Config.DryRun {
+			fmt.Fprintf(cmd.ErrOrStderr(), "--> WARNING: required object %q does not exist\n", item)
+			continue
+		}
+
+		return fmt.Errorf("required object %q does not exist", item)
+	}
+
+	if pl.Table.IsNotEmpty() {
+		created[pl.Database.Name.ToString()+"."+pl.Table.Name.ToString()] = true
+	}
+
+	if pl.View.IsNotEmpty() {
+		created[pl.Database.Name.ToString()+"."+pl.View.Name.ToString()] = true
 	}
 
 	if pl.User.IsNotEmpty() && !pl.Config.DryRun && !ch.DatabaseExists(pl.Database.Name.ToString()) {
@@ -67,6 +111,7 @@ func Run(cmd *cobra.Command) (err error) {
 			Message:   fmt.Sprintf("Create database: %s", pl.Database.Name.ToString()),
 		},
 		{
+			Continue:  pl.Table.IsEmpty() && pl.View.IsEmpty(),
 			Statement: pl.Database.Use().SQL(),
 		},
 		{
@@ -112,7 +157,7 @@ func Run(cmd *cobra.Command) (err error) {
 			continue
 		}
 
-		if !pl.Config.DryRun && strings.IsNotEmpty(query.Message) {
+		if !(pl.Config.DryRun && pl.Config.SQL) && strings.IsNotEmpty(query.Message) {
 			fmt.Fprintln(cmd.OutOrStdout(), "-->", query.Message)
 		}
 

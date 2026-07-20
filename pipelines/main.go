@@ -20,17 +20,19 @@ func Instance() *Pipelines {
 }
 
 type Pipelines struct {
-	Backfill Backfill `yaml:"-"`
-	Config   Config   `yaml:"-"`
-	Database Database `yaml:"database"`
-	Table    Table    `yaml:"table"`
-	User     User     `yaml:"user"`
-	View     View     `yaml:"view"`
+	Backfill  Backfill `yaml:"-"`
+	Config    Config   `yaml:"-"`
+	Database  Database `yaml:"database"`
+	Pipelines []string `yaml:"pipelines"`
+	Table     Table    `yaml:"table"`
+	User      User     `yaml:"user"`
+	View      View     `yaml:"view"`
 }
 
 func (p *Pipelines) Reset() {
 	p.Backfill = Backfill{}
 	p.Database = Database{}
+	p.Pipelines = nil
 	p.Table = Table{}
 	p.User = User{}
 	p.View = View{}
@@ -55,4 +57,17 @@ func (p *Pipelines) SetParents() {
 	p.Backfill.Parent = p
 	p.Table.Parent = p
 	p.View.Parent = p
+}
+
+func (p *Pipelines) LoadFile(path string) error {
+	p.Reset()
+	p.Config.Pipe = path
+
+	if err := p.Load(); err != nil {
+		return err
+	}
+
+	p.SetParents()
+
+	return nil
 }
