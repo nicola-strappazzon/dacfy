@@ -128,3 +128,37 @@ database:
 	assert.Contains(t, out, "CREATE DATABASE IF NOT EXISTS malware_search ON CLUSTER zynap_prd ENGINE = Replicated('/clickhouse/databases/malware_search', '{replica}');")
 	assert.Contains(t, out, "USE malware_search;")
 }
+
+func TestCommand_UserWithGrants(t *testing.T) {
+	pipe := filepath.Join(t.TempDir(), "user.yaml")
+	err := os.WriteFile(pipe, []byte(`---
+database:
+  name: malware_search
+  cluster: zynap_prd
+user:
+  name: malware
+  password: 'EWZJcEvRZg9zfsg1'
+  cluster: zynap_prd
+  grants:
+    - { privilege: SHOW,   on: malware_search.* }
+    - { privilege: SELECT, on: malware_search.* }
+`), 0600)
+	assert.NoError(t, err)
+
+	var buf bytes.Buffer
+
+	load(pipe)
+
+	cmd := create.NewCommand()
+	cmd.SetOut(&buf)
+	cmd.SetErr(&buf)
+
+	err = cmd.Execute()
+	out := buf.String()
+
+	assert.NoError(t, err)
+	assert.NotContains(t, out, "CREATE DATABASE")
+	assert.Contains(t, out, "CREATE USER IF NOT EXISTS malware ON CLUSTER zynap_prd IDENTIFIED BY 'EWZJcEvRZg9zfsg1';")
+	assert.Contains(t, out, "GRANT ON CLUSTER zynap_prd SHOW ON malware_search.* TO malware;")
+	assert.Contains(t, out, "GRANT ON CLUSTER zynap_prd SELECT ON malware_search.* TO malware;")
+}

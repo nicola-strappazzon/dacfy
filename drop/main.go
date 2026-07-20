@@ -59,6 +59,10 @@ func Run() (err error) {
 		return err
 	}
 
+	if err = pl.User.Validate(); err != nil {
+		return err
+	}
+
 	if err = Dependency(); err != nil {
 		return err
 	}
@@ -82,6 +86,11 @@ func Run() (err error) {
 			Statement: pl.Database.Drop().SQL(),
 			Delete:    pl.Database.Delete,
 			Message:   fmt.Sprintf("Delete database: %s", pl.Database.Name),
+		},
+		{
+			Statement: pl.User.Drop().SQL(),
+			Delete:    pl.User.Delete,
+			Message:   fmt.Sprintf("Delete user: %s", pl.User.Name),
 		},
 	}
 
