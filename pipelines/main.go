@@ -24,6 +24,7 @@ type Pipelines struct {
 	Config   Config   `yaml:"-"`
 	Database Database `yaml:"database"`
 	Table    Table    `yaml:"table"`
+	User     User     `yaml:"user"`
 	View     View     `yaml:"view"`
 }
 
@@ -31,6 +32,7 @@ func (p *Pipelines) Reset() {
 	p.Backfill = Backfill{}
 	p.Database = Database{}
 	p.Table = Table{}
+	p.User = User{}
 	p.View = View{}
 }
 

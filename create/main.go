@@ -39,6 +39,10 @@ func Run(cmd *cobra.Command) (err error) {
 		return err
 	}
 
+	if err = pl.User.Validate(); err != nil {
+		return err
+	}
+
 	for _, item := range pl.Table.Require {
 		db, name := pl.Table.ParseRequireItem(item)
 		if !ch.TableExists(db, name) {
@@ -46,7 +50,11 @@ func Run(cmd *cobra.Command) (err error) {
 		}
 	}
 
-	createDatabase := pl.Table.IsEmpty() && pl.View.IsEmpty()
+	if pl.User.IsNotEmpty() && !pl.Config.DryRun && !ch.DatabaseExists(pl.Database.Name.ToString()) {
+		return fmt.Errorf("database %q does not exist", pl.Database.Name.ToString())
+	}
+
+	createDatabase := pl.Table.IsEmpty() && pl.View.IsEmpty() && pl.User.IsEmpty()
 
 	queries := []struct {
 		Message   string
@@ -71,6 +79,28 @@ func Run(cmd *cobra.Command) (err error) {
 			Statement: pl.View.SetSuffix(pl.Config.Suffix).Create().SQL(),
 			Message:   fmt.Sprintf("Create view: %s", pl.View.SetSuffix(pl.Config.Suffix).Name.ToString()),
 		},
+	}
+
+	if pl.User.IsNotEmpty() {
+		queries = append(queries, struct {
+			Message   string
+			Statement string
+			Continue  bool
+		}{
+			Statement: pl.User.Create().SQL(),
+			Message:   fmt.Sprintf("Create user: %s", pl.User.Name.ToString()),
+		})
+
+		for _, grant := range pl.User.Grants {
+			queries = append(queries, struct {
+				Message   string
+				Statement string
+				Continue  bool
+			}{
+				Statement: pl.User.Grant(grant).SQL(),
+				Message:   fmt.Sprintf("Grant %s on %s to %s", grant.Privilege, grant.On, pl.User.Name.ToString()),
+			})
+		}
 	}
 
 	for _, query := range queries {
