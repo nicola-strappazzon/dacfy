@@ -24,6 +24,8 @@ func NewCommand() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().BoolVar(&pl.Config.NoCluster, "no-cluster", false, "Ignore ON CLUSTER clauses (useful for local or container testing).")
+
 	return cmd
 }
 

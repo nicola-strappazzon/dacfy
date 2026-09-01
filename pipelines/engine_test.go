@@ -30,6 +30,28 @@ func TestEngine_ToString(t *testing.T) {
 	}
 }
 
+func TestEngine_WithoutReplicated(t *testing.T) {
+	cases := []struct {
+		name     string
+		input    pipelines.Engine
+		expected string
+	}{
+		{"not replicated", "MergeTree", "MergeTree"},
+		{"not replicated with args", "MergeTree()", "MergeTree()"},
+		{"replicated no args", "ReplicatedMergeTree", "MergeTree"},
+		{"replicated path and replica", "ReplicatedMergeTree('/clickhouse/tables/{shard}/t', '{replica}')", "MergeTree"},
+		{"replicated with extra arg", "ReplicatedReplacingMergeTree('/path', '{replica}', version)", "ReplacingMergeTree(version)"},
+		{"replicated with tuple arg", "ReplicatedSummingMergeTree('/path', '{replica}', (a, b))", "SummingMergeTree((a, b))"},
+		{"replicated comma inside quotes", "ReplicatedMergeTree('/a,b', '{replica}', ver)", "MergeTree(ver)"},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, tc.input.WithoutReplicated().ToString())
+		})
+	}
+}
+
 func TestEngine_IsEmpty_And_IsNotEmpty(t *testing.T) {
 	cases := []struct {
 		name      string
