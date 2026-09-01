@@ -50,7 +50,19 @@ func (p *Pipelines) Load() error {
 		}
 	}
 
-	return yaml.Unmarshal(file.ReadExpandEnv(f), p)
+	if err := yaml.Unmarshal(file.ReadExpandEnv(f), p); err != nil {
+		return err
+	}
+
+	if p.Config.NoCluster {
+		p.Database.Cluster = ""
+		p.User.Cluster = ""
+		p.Database.Replicated = DatabaseReplicated{}
+		p.Table.Engine = p.Table.Engine.WithoutReplicated()
+		p.View.Engine = p.View.Engine.WithoutReplicated()
+	}
+
+	return nil
 }
 
 func (p *Pipelines) SetParents() {
