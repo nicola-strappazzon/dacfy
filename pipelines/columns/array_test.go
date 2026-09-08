@@ -203,6 +203,13 @@ func TestArray_NotIn(t *testing.T) {
 			expected: []string{},
 			ok:       false,
 		},
+		{
+			name:     "function with modulo compares its column",
+			left:     columns.Array{columns.Name("sipHash64(sha256) % 100")},
+			right:    columns.Array{columns.Name("sha256")},
+			expected: []string{},
+			ok:       false,
+		},
 	}
 
 	for _, tc := range cases {
