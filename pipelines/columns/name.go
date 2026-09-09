@@ -23,7 +23,7 @@ func (n Name) Clear() (out string) {
 }
 
 func (n Name) GetArgument() (bool, string) {
-	re := regexp.MustCompile(`^(?:\w+\()?([a-zA-Z_][a-zA-Z0-9_]*)\)?$`)
+	re := regexp.MustCompile(`^(?:\w+\()?([a-zA-Z_][a-zA-Z0-9_]*)\)?(?:\s*%\s*\d+)?$`)
 
 	match := re.FindStringSubmatch(n.ToString())
 	if len(match) > 1 {

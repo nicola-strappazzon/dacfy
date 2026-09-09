@@ -55,6 +55,7 @@ func TestName_Clear(t *testing.T) {
 		{"simple name", columns.Name("visit_date"), "visit_date"},
 		{"function with column", columns.Name("toYYYYMM(visit_date)"), "visit_date"},
 		{"other function", columns.Name("func_name(user_id)"), "user_id"},
+		{"function with modulo", columns.Name("sipHash64(sha256) % 100"), "sha256"},
 		{"underscore in name", columns.Name("func_name(user_id_123)"), "user_id_123"},
 		{"invalid format", columns.Name("sum(user id)"), "sum(user id)"},
 		{"empty", columns.Name(""), ""},
