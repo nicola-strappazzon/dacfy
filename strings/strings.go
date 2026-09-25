@@ -31,3 +31,7 @@ func ReplaceAll(s, old, new string) string {
 func TrimRight(s, cutset string) string {
 	return strings.TrimRight(s, cutset)
 }
+
+func Cut(s, sep string) (string, string, bool) {
+	return strings.Cut(s, sep)
+}

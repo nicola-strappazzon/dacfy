@@ -7,6 +7,15 @@ A simple way to use pipelines for data transformation: define your databases, ta
 
 To understand exactly what this tool does, I’ve included a series of curated [examples](https://github.com/nicola-strappazzon/cht/tree/main/examples) that have been reorganized to help you grasp how it works much more clearly.
 
+## Pipeline graph
+
+Print a terminal diagram of the tables and materialized views in a pipeline. The
+command accepts only one file, a manifest containing `pipelines`:
+
+```bash
+dacfy graph examples/splitview/mv_user_daily.yaml
+```
+
 ## Install on macOS
 
 Using [Homebrew](https://brew.sh/):
