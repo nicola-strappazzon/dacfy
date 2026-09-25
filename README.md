@@ -10,18 +10,11 @@ To understand exactly what this tool does, I’ve included a series of curated [
 ## Pipeline graph
 
 Print a terminal diagram of the tables and materialized views in a pipeline. The
-command accepts a directory, a manifest containing `pipelines`, or one or more
-YAML files:
+command accepts only one file, a manifest containing `pipelines`:
 
 ```bash
-dacfy graph examples/splitview
-dacfy graph pipeline.yaml
-dacfy graph events.yaml agg.yaml view.yaml
+dacfy graph examples/splitview/mv_user_daily.yaml
 ```
-
-Dependencies are inferred from `table.require`, SQL `FROM`/`JOIN` clauses, and
-the destination declared by `view.to`. This command does not connect to
-ClickHouse.
 
 ## Install on macOS
 

@@ -3,7 +3,6 @@ package pipelines
 import (
 	"fmt"
 	"reflect"
-	gstrings "strings"
 
 	"github.com/nicola-strappazzon/dacfy/pipelines/columns"
 	"github.com/nicola-strappazzon/dacfy/strings"
@@ -45,16 +44,25 @@ type Table struct {
 	TTL         string          `yaml:"ttl"`
 }
 
-func (t Table) HasRequire() bool {
-	return len(t.Require) > 0
+func NewTableFromReference(in string) *Table {
+	_, tableName, found := strings.Cut(in, ".")
+	if !found {
+		tableName = in
+	}
+
+	return &Table{Name: Name(tableName)}
 }
 
 func (t Table) ParseRequireItem(item string) (database, name string) {
-	if db, n, ok := gstrings.Cut(item, "."); ok {
-		return db, n
+	if db, tbl, ok := strings.Cut(item, "."); ok {
+		return db, tbl
 	}
 
 	return t.Parent.Database.Name.ToString(), item
+}
+
+func (t Table) HasRequire() bool {
+	return len(t.Require) > 0
 }
 
 func (t Table) SetName(in string) Table {

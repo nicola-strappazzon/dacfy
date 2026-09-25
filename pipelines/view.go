@@ -3,6 +3,7 @@ package pipelines
 import (
 	"fmt"
 	"reflect"
+	"regexp"
 
 	"github.com/nicola-strappazzon/dacfy/pipelines/columns"
 	"github.com/nicola-strappazzon/dacfy/strings"
@@ -202,4 +203,16 @@ func (v View) Validate() error {
 	}
 
 	return nil
+}
+
+func (v View) SourceTables() (tables Tables) {
+	re := regexp.MustCompile(
+		`(?i)\b(?:FROM|JOIN)\s+([a-zA-Z_][a-zA-Z0-9_.]*)`,
+	)
+
+	for _, match := range re.FindAllStringSubmatch(v.Query.ToString(), -1) {
+		tables.Add(*NewTableFromReference(match[1]))
+	}
+
+	return tables
 }
