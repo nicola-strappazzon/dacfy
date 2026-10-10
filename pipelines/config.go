@@ -1,9 +1,7 @@
 package pipelines
 
 import (
-	"fmt"
-	"os"
-	"strconv"
+	"github.com/nicola-strappazzon/dacfy/env"
 )
 
 const (
@@ -25,41 +23,19 @@ type Config struct {
 	User        string // Username for the ClickHouse server.
 }
 
-func (c *Config) LoadConnectionEnv() error {
-	c.Host = envString("DACFY_HOST", defaultHost)
-	c.User = envString("DACFY_USER", defaultUser)
-	c.Password = envString("DACFY_PASSWORD", "")
+func (c *Config) Load() error {
+	c.Host = env.String("DACFY_HOST", defaultHost)
+	c.User = env.String("DACFY_USER", defaultUser)
+	c.Password = env.String("DACFY_PASSWORD", "")
 
 	var err error
-	if c.TLS, err = envBool("DACFY_TLS", false); err != nil {
+	if c.TLS, err = env.Bool("DACFY_TLS", false); err != nil {
 		return err
 	}
 
-	if c.TLSInsecure, err = envBool("DACFY_TLS_INSECURE", false); err != nil {
+	if c.TLSInsecure, err = env.Bool("DACFY_TLS_INSECURE", false); err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func envString(name, fallback string) string {
-	if value, ok := os.LookupEnv(name); ok {
-		return value
-	}
-
-	return fallback
-}
-
-func envBool(name string, fallback bool) (bool, error) {
-	value, ok := os.LookupEnv(name)
-	if !ok {
-		return fallback, nil
-	}
-
-	out, err := strconv.ParseBool(value)
-	if err != nil {
-		return false, fmt.Errorf("%s must be a boolean: %w", name, err)
-	}
-
-	return out, nil
 }

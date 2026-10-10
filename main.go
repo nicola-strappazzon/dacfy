@@ -28,7 +28,7 @@ func init() {
 }
 
 func main() {
-	if err := pl.Config.LoadConnectionEnv(); err != nil {
+	if err := pl.Config.Load(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}

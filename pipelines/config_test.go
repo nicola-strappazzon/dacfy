@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestConfig_LoadConnectionEnv(t *testing.T) {
+func TestConfig_Load(t *testing.T) {
 	t.Setenv("DACFY_HOST", "clickhouse.example.com:9440")
 	t.Setenv("DACFY_USER", "analytics")
 	t.Setenv("DACFY_PASSWORD", "secret")
@@ -17,7 +17,7 @@ func TestConfig_LoadConnectionEnv(t *testing.T) {
 	t.Setenv("DACFY_TLS_INSECURE", "true")
 
 	var config pipelines.Config
-	require.NoError(t, config.LoadConnectionEnv())
+	require.NoError(t, config.Load())
 
 	assert.Equal(t, "clickhouse.example.com:9440", config.Host)
 	assert.Equal(t, "analytics", config.User)
@@ -26,9 +26,9 @@ func TestConfig_LoadConnectionEnv(t *testing.T) {
 	assert.True(t, config.TLSInsecure)
 }
 
-func TestConfig_LoadConnectionEnvRejectsInvalidBoolean(t *testing.T) {
+func TestConfig_LoadRejectsInvalidBoolean(t *testing.T) {
 	t.Setenv("DACFY_TLS", "sometimes")
 
 	var config pipelines.Config
-	assert.EqualError(t, config.LoadConnectionEnv(), "DACFY_TLS must be a boolean: strconv.ParseBool: parsing \"sometimes\": invalid syntax")
+	assert.EqualError(t, config.Load(), "DACFY_TLS must be a boolean: strconv.ParseBool: parsing \"sometimes\": invalid syntax")
 }
