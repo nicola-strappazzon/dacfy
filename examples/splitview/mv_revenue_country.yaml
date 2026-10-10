@@ -1,4 +1,7 @@
 ---
+description: |
+  Creates the materialized view for revenue aggregates by country and device.
+  It reads events and writes to agg_revenue_country.
 database:
   name: splitview
 view:

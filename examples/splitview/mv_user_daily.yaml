@@ -1,4 +1,7 @@
 ---
+description: |
+  Creates the materialized view for daily user engagement aggregates.
+  It reads events and writes to agg_user_daily.
 database:
   name: splitview
 view:

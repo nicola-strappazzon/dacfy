@@ -1,4 +1,7 @@
 ---
+description: |
+  Defines the target table for revenue aggregates by country and device.
+  It is part of the SplitView analytics pipeline.
 database:
   name: splitview
 table:

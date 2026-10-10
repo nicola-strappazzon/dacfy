@@ -78,7 +78,10 @@ view:
 }
 
 func TestPipelines_LoadMultilineDescriptions(t *testing.T) {
-	yaml := `table:
+	yaml := `description: |
+  Defines the analytics pipeline.
+  Used to document its objects.
+table:
   name: events
   description: |
     Stores raw events.
@@ -95,6 +98,7 @@ view:
 	p := &pipelines.Pipelines{}
 	require.NoError(t, p.LoadFile(path))
 
+	assert.Equal(t, "Defines the analytics pipeline.\nUsed to document its objects.\n", p.Description)
 	assert.Equal(t, "Stores raw events.\nRetained for 30 days.\n", p.Table.Description)
 	assert.Equal(t, "Aggregates events by day.\nUsed by the analytics dashboard.\n", p.View.Description)
 }

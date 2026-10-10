@@ -1,4 +1,7 @@
 ---
+description: |
+  Creates the Wikimedia page-view source table.
+  It imports a sample of the public wikistat dataset.
 database:
   name: wikistat
   delete: true

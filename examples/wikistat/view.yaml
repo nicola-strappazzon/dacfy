@@ -1,4 +1,7 @@
 ---
+description: |
+  Creates the top-projects target table and materialized view.
+  It aggregates Wikimedia page views by day and project.
 database:
   name: wikistat
 table:

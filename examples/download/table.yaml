@@ -1,4 +1,7 @@
 ---
+description: |
+  Creates the source table and sample download events.
+  It is used by the daily download aggregation example.
 database:
   name: download
   delete: true

@@ -1,4 +1,7 @@
 ---
+description: |
+  Creates a daily aggregation for generated download events.
+  It demonstrates a materialized view with an implicit target table.
 database:
   name: download
 view:

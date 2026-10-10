@@ -1,4 +1,7 @@
 ---
+description: |
+  Creates the raw events table and generates sample analytics data.
+  It is the source of the SplitView analytics pipeline.
 database:
   name: splitview
   delete: true
