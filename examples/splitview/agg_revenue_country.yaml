@@ -1,8 +1,14 @@
 ---
+description: |
+  Defines the target table for revenue aggregates by country and device.
+  It is part of the SplitView analytics pipeline.
 database:
   name: splitview
 table:
   name: agg_revenue_country
+  description: |
+    Stores pre-aggregated revenue metrics by date, country, and device.
+    It is populated by the mv_revenue_country materialized view.
   delete: true
   columns:
     - { name: event_date,    type: Date }

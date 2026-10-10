@@ -31,6 +31,7 @@ type Table struct {
 	Backfill    TableBackfill   `yaml:"backfill"`
 	Columns     columns.Map     `yaml:"columns"`
 	Delete      bool            `yaml:"delete"`
+	Description string          `yaml:"description"`
 	Engine      Engine          `yaml:"engine"`
 	MongoDB     MongoDB         `yaml:"mongodb"`
 	Name        Name            `yaml:"name"`

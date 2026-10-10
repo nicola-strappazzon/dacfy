@@ -76,3 +76,29 @@ view:
 	assert.Equal(t, "SELECT id, event_time FROM historical_events", p.View.Backfill.Query.ToString())
 	assert.Equal(t, "event_time >= '{date_from}' AND event_time < '{date_to}'", p.View.Backfill.Where.ToString())
 }
+
+func TestPipelines_LoadMultilineDescriptions(t *testing.T) {
+	yaml := `description: |
+  Defines the analytics pipeline.
+  Used to document its objects.
+table:
+  name: events
+  description: |
+    Stores raw events.
+    Retained for 30 days.
+view:
+  name: events_daily
+  description: |
+    Aggregates events by day.
+    Used by the analytics dashboard.
+`
+	path := filepath.Join(t.TempDir(), "descriptions.yaml")
+	require.NoError(t, os.WriteFile(path, []byte(yaml), 0o644))
+
+	p := &pipelines.Pipelines{}
+	require.NoError(t, p.LoadFile(path))
+
+	assert.Equal(t, "Defines the analytics pipeline.\nUsed to document its objects.\n", p.Description)
+	assert.Equal(t, "Stores raw events.\nRetained for 30 days.\n", p.Table.Description)
+	assert.Equal(t, "Aggregates events by day.\nUsed by the analytics dashboard.\n", p.View.Description)
+}

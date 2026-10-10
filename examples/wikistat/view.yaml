@@ -1,8 +1,14 @@
 ---
+description: |
+  Creates the top-projects target table and materialized view.
+  It aggregates Wikimedia page views by day and project.
 database:
   name: wikistat
 table:
   name: wikistat_top_projects
+  description: |
+    Stores daily page-view totals for each Wikimedia project.
+    It is the target table for wikistat_top_projects_mv.
   delete: true
   engine: SummingMergeTree
   order_by: [date, project]
@@ -12,6 +18,9 @@ table:
     - {name: hits,    type: UInt32 }
 view:
   name: wikistat_top_projects_mv
+  description: |
+    Aggregates Wikimedia page views by date and project.
+    It writes the results to wikistat_top_projects.
   to: wikistat_top_projects
   delete: true
   materialized: true

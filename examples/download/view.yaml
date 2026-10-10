@@ -1,8 +1,14 @@
 ---
+description: |
+  Creates a daily aggregation for generated download events.
+  It demonstrates a materialized view with an implicit target table.
 database:
   name: download
 view:
   name: download_daily_mv
+  description: |
+    Aggregates downloads by user and day.
+    It stores counts and transferred bytes.
   delete: true
   engine: SummingMergeTree
   partition_by:

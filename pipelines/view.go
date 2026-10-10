@@ -17,6 +17,7 @@ type View struct {
 	Backfill     ViewBackfill    `yaml:"backfill"`
 	Columns      columns.Map     `yaml:"columns"`
 	Delete       bool            `yaml:"delete"`
+	Description  string          `yaml:"description"`
 	Engine       Engine          `yaml:"engine"`
 	Materialized bool            `yaml:"materialized"`
 	Name         Name            `yaml:"name"`

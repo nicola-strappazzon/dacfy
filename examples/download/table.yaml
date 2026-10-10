@@ -1,9 +1,15 @@
 ---
+description: |
+  Creates the source table and sample download events.
+  It is used by the daily download aggregation example.
 database:
   name: download
   delete: true
 table:
   name: download
+  description: |
+    Stores generated download events.
+    The query creates sample data for this example.
   delete: true
   engine: MergeTree
   partition_by:

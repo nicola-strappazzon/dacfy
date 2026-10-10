@@ -1,9 +1,15 @@
 ---
+description: |
+  Creates the raw events table and generates sample analytics data.
+  It is the source of the SplitView analytics pipeline.
 database:
   name: splitview
   delete: true
 table:
   name: events
+  description: |
+    Stores raw analytics events generated for the SplitView example.
+    It is the source table for the materialized views.
   delete: true
   columns:
     - { name: event_date, type: Date }

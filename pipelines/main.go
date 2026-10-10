@@ -20,18 +20,20 @@ func Instance() *Pipelines {
 }
 
 type Pipelines struct {
-	Backfill  Backfill `yaml:"-"`
-	Config    Config   `yaml:"-"`
-	Database  Database `yaml:"database"`
-	Pipelines []string `yaml:"pipelines"`
-	Table     Table    `yaml:"table"`
-	User      User     `yaml:"user"`
-	View      View     `yaml:"view"`
+	Backfill    Backfill `yaml:"-"`
+	Config      Config   `yaml:"-"`
+	Database    Database `yaml:"database"`
+	Description string   `yaml:"description"`
+	Pipelines   []string `yaml:"pipelines"`
+	Table       Table    `yaml:"table"`
+	User        User     `yaml:"user"`
+	View        View     `yaml:"view"`
 }
 
 func (p *Pipelines) Reset() {
 	p.Backfill = Backfill{}
 	p.Database = Database{}
+	p.Description = ""
 	p.Pipelines = nil
 	p.Table = Table{}
 	p.User = User{}
