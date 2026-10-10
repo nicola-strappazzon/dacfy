@@ -7,6 +7,21 @@ A simple way to use pipelines for data transformation: define your databases, ta
 
 To understand exactly what this tool does, I’ve included a series of curated [examples](https://github.com/nicola-strappazzon/cht/tree/main/examples) that have been reorganized to help you grasp how it works much more clearly.
 
+## ClickHouse connection
+
+Configure the ClickHouse connection with environment variables:
+
+```bash
+export DACFY_HOST=clickhouse.example.com:9000
+export DACFY_USER=analytics
+export DACFY_PASSWORD=secret
+export DACFY_TLS=true
+export DACFY_TLS_INSECURE=false
+```
+
+The corresponding flags (`--host`, `--user`, `--password`, `--tls`, and
+`--tls-insecure`) take precedence over these variables.
+
 ## Install on macOS
 
 Using [Homebrew](https://brew.sh/):
