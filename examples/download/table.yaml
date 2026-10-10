@@ -4,6 +4,9 @@ database:
   delete: true
 table:
   name: download
+  description: |
+    Stores generated download events.
+    The query creates sample data for this example.
   delete: true
   engine: MergeTree
   partition_by:

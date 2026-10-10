@@ -3,6 +3,9 @@ database:
   name: splitview
 view:
   name: mv_revenue_country
+  description: |
+    Aggregates revenue, purchases, and users by date, country, and device.
+    It writes aggregate states to agg_revenue_country.
   to: agg_revenue_country
   delete: true
   materialized: true

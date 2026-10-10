@@ -3,6 +3,9 @@ database:
   name: splitview
 table:
   name: agg_user_daily
+  description: |
+    Stores pre-aggregated daily engagement metrics for each user and device.
+    It is populated by the mv_user_daily materialized view.
   delete: true
   columns:
     - { name: event_date,  type: Date }

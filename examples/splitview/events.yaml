@@ -4,6 +4,9 @@ database:
   delete: true
 table:
   name: events
+  description: |
+    Stores raw analytics events generated for the SplitView example.
+    It is the source table for the materialized views.
   delete: true
   columns:
     - { name: event_date, type: Date }

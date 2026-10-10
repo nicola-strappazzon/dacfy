@@ -3,6 +3,9 @@ database:
   name: download
 view:
   name: download_daily_mv
+  description: |
+    Aggregates downloads by user and day.
+    It stores counts and transferred bytes.
   delete: true
   engine: SummingMergeTree
   partition_by:

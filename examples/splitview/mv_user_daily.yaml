@@ -3,6 +3,9 @@ database:
   name: splitview
 view:
   name: mv_user_daily
+  description: |
+    Aggregates daily engagement metrics for each user and device.
+    It writes aggregate states to agg_user_daily.
   to: agg_user_daily
   delete: true
   materialized: true
