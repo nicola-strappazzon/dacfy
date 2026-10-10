@@ -8,8 +8,13 @@ import (
 	"github.com/nicola-strappazzon/dacfy/strings"
 )
 
+type ViewBackfill struct {
+	Query Query `yaml:"query"`
+	Where Where `yaml:"where"`
+}
+
 type View struct {
-	Backfill     TableBackfill   `yaml:"backfill"`
+	Backfill     ViewBackfill    `yaml:"backfill"`
 	Columns      columns.Map     `yaml:"columns"`
 	Delete       bool            `yaml:"delete"`
 	Engine       Engine          `yaml:"engine"`

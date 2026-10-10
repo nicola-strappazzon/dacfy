@@ -53,3 +53,26 @@ table:
 		assert.Equal(t, "MergeTree", p.Table.Engine.ToString())
 	})
 }
+
+func TestPipelines_LoadViewBackfillQuery(t *testing.T) {
+	yaml := `database:
+  name: analytics
+view:
+  materialized: true
+  populate: backfill
+  name: events_mv
+  to: events_daily
+  query: SELECT id, event_time FROM live_events
+  backfill:
+    query: SELECT id, event_time FROM historical_events
+    where: "event_time >= '{date_from}' AND event_time < '{date_to}'"
+`
+	path := filepath.Join(t.TempDir(), "backfill.yaml")
+	require.NoError(t, os.WriteFile(path, []byte(yaml), 0o644))
+
+	p := &pipelines.Pipelines{}
+	require.NoError(t, p.LoadFile(path))
+
+	assert.Equal(t, "SELECT id, event_time FROM historical_events", p.View.Backfill.Query.ToString())
+	assert.Equal(t, "event_time >= '{date_from}' AND event_time < '{date_to}'", p.View.Backfill.Where.ToString())
+}

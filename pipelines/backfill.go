@@ -35,13 +35,13 @@ func (b Backfill) Do() Backfill {
 		return b
 	}
 
-	if b.Parent.View.Query.IsEmpty() {
+	if b.Query().IsEmpty() {
 		return b
 	}
 
 	b.Statement = strings.Builder{}
 	b.writeInsertInto()
-	b.Statement.WriteString(b.Parent.View.Query.Minify())
+	b.Statement.WriteString(b.Query().Minify())
 	b.writeSettings()
 
 	return b
@@ -81,11 +81,19 @@ func (b Backfill) Where() Where {
 	return b.Parent.Table.Backfill.Where
 }
 
+func (b Backfill) Query() Query {
+	if b.Parent.View.Backfill.Query.IsNotEmpty() {
+		return b.Parent.View.Backfill.Query
+	}
+
+	return b.Parent.View.Query
+}
+
 func (b Backfill) DoChunk(dateFrom, dateTo string) Backfill {
 	where := strings.ReplaceAll(b.Where().ToString(), "{date_from}", dateFrom)
 	where = strings.ReplaceAll(where, "{date_to}", dateTo)
 
-	if b.Parent.View.Materialized && b.Parent.View.Query.IsNotEmpty() {
+	if b.Parent.View.Materialized && b.Query().IsNotEmpty() {
 		return b.doChunkFromView(where)
 	}
 
@@ -108,7 +116,7 @@ func (b Backfill) doChunkFromView(where string) Backfill {
 	b.Statement = strings.Builder{}
 	b.writeInsertInto()
 	b.Statement.WriteString("SELECT * FROM (")
-	b.Statement.WriteString(b.Parent.View.Query.Minify())
+	b.Statement.WriteString(b.Query().Minify())
 	b.Statement.WriteString(") WHERE ")
 	b.Statement.WriteString(where)
 	b.writeSettings()
