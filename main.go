@@ -28,6 +28,11 @@ func init() {
 }
 
 func main() {
+	if err := pl.Config.LoadConnectionEnv(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+
 	var rootCmd = &cobra.Command{
 		Use: "dacfy [COMMANDS] [OPTIONS]",
 		Long: `ClickHouse Data as Code - A simple way to use pipelines for data transformation.
@@ -79,15 +84,17 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 		SilenceUsage: true,
 	}
 
-	rootCmd.PersistentFlags().StringVar(&pl.Config.Host, "host", "127.0.0.1:9000", "ClickHouse server host and port.")
-	rootCmd.PersistentFlags().StringVar(&pl.Config.Password, "password", "", "Password for the ClickHouse server.")
+	rootCmd.PersistentFlags().StringVar(&pl.Config.Host, "host", pl.Config.Host, "ClickHouse server host and port.")
+	rootCmd.PersistentFlags().StringVar(&pl.Config.Password, "password", pl.Config.Password, "Password for the ClickHouse server.")
 	rootCmd.PersistentFlags().StringVar(&pl.Config.Suffix, "suffix", "", "Append a suffix to table and view names.")
-	rootCmd.PersistentFlags().StringVar(&pl.Config.User, "user", "default", "Username for the ClickHouse server.")
+	rootCmd.PersistentFlags().StringVar(&pl.Config.User, "user", pl.Config.User, "Username for the ClickHouse server.")
 	rootCmd.PersistentFlags().BoolVar(&pl.Config.Debug, "debug", false, "Enable debug mode.")
 	rootCmd.PersistentFlags().BoolVar(&pl.Config.DryRun, "dry-run", false, "Show what would be executed without applying changes.")
 	rootCmd.PersistentFlags().BoolVar(&pl.Config.SQL, "sql", false, "Show SQL Statement.")
-	rootCmd.PersistentFlags().BoolVar(&pl.Config.TLS, "tls", false, "Enable TLS for the ClickHouse server.")
-	rootCmd.PersistentFlags().BoolVar(&pl.Config.TLSInsecure, "tls-insecure", false, "Enable TLS without verifying the server certificate (for custom or self-signed certs).")
+	rootCmd.PersistentFlags().BoolVar(&pl.Config.TLS, "tls", pl.Config.TLS, "Enable TLS for the ClickHouse server.")
+	rootCmd.PersistentFlags().BoolVar(&pl.Config.TLSInsecure, "tls-insecure", pl.Config.TLSInsecure, "Enable TLS without verifying the server certificate (for custom or self-signed certs).")
+	rootCmd.PersistentFlags().Lookup("password").DefValue = ""
+
 	rootCmd.AddCommand(backfill.NewCommand())
 	rootCmd.AddCommand(create.NewCommand())
 	rootCmd.AddCommand(drop.NewCommand())
