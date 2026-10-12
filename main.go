@@ -8,6 +8,7 @@ import (
 	"github.com/nicola-strappazzon/dacfy/clickhouse"
 	"github.com/nicola-strappazzon/dacfy/create"
 	"github.com/nicola-strappazzon/dacfy/drop"
+	"github.com/nicola-strappazzon/dacfy/ping"
 	"github.com/nicola-strappazzon/dacfy/pipelines"
 	"github.com/nicola-strappazzon/dacfy/query"
 	"github.com/nicola-strappazzon/dacfy/swap"
@@ -50,7 +51,7 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 		},
 		PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
 			switch cmd.Name() {
-			case "dacfy", "help", "version":
+			case "dacfy", "help", "ping", "version":
 				return nil
 			}
 			if pl.Config.DryRun {
@@ -98,6 +99,7 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 	rootCmd.AddCommand(backfill.NewCommand())
 	rootCmd.AddCommand(create.NewCommand())
 	rootCmd.AddCommand(drop.NewCommand())
+	rootCmd.AddCommand(ping.NewCommand())
 	rootCmd.AddCommand(query.NewCommand())
 	rootCmd.AddCommand(swap.NewCommand())
 	rootCmd.AddCommand(version.NewCommand())
