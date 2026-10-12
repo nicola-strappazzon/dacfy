@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/nicola-strappazzon/dacfy/backfill"
 	"github.com/nicola-strappazzon/dacfy/clickhouse"
@@ -22,10 +23,12 @@ var ch = clickhouse.Instance()
 var pl = pipelines.Instance()
 var tt = terminal.Terminal{}
 
-type progressHandler struct{}
+type progressHandler struct {
+	mu sync.Mutex
+}
 
 func init() {
-	ch.SetLogger(progressHandler{})
+	ch.SetLogger(&progressHandler{})
 }
 
 func main() {
@@ -109,7 +112,10 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 	}
 }
 
-func (progressHandler) WriteProgress(in clickhouse.Progress) {
+func (p *progressHandler) WriteProgress(in clickhouse.Progress) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
 	tt.New()
 	tt.Write(in.ToString())
 }
