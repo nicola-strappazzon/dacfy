@@ -64,6 +64,16 @@ func TestReadExpandEnv(t *testing.T) {
 			want: []byte("valor=bar"),
 		},
 		{
+			name: "Env var wrapped in braces",
+			in:   []byte("password={$FOO}"),
+			want: []byte("password=bar"),
+		},
+		{
+			name: "Braced env var wrapped in braces",
+			in:   []byte("password={${FOO}}"),
+			want: []byte("password=bar"),
+		},
+		{
 			name: "Unexisted env var",
 			in:   []byte("value=$BAZ"),
 			want: []byte("value="),

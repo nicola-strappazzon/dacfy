@@ -5,6 +5,8 @@ import (
 	"regexp"
 )
 
+var envVarWithBraces = regexp.MustCompile(`\{(\$\{[A-Za-z0-9_]+\}|\$[A-Za-z_][A-Za-z0-9_]*)\}`)
+
 func FindEnvVars(in []byte) (out []string) {
 	re := regexp.MustCompile(`\$\{([A-Za-z0-9_]+)\}|\$([A-Za-z_][A-Za-z0-9_]*)`)
 	matches := re.FindAllStringSubmatch(string(in), -1)
@@ -21,5 +23,6 @@ func FindEnvVars(in []byte) (out []string) {
 }
 
 func ReadExpandEnv(in []byte) []byte {
-	return []byte(os.ExpandEnv(string(in)))
+	value := envVarWithBraces.ReplaceAllString(string(in), "$1")
+	return []byte(os.ExpandEnv(value))
 }
