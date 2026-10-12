@@ -22,6 +22,12 @@ export DACFY_TLS_INSECURE=false
 The corresponding flags (`--host`, `--user`, `--password`, `--tls`, and
 `--tls-insecure`) take precedence over these variables.
 
+Verify the connection with:
+
+```bash
+dacfy ping
+```
+
 ## Install on macOS
 
 Using [Homebrew](https://brew.sh/):
