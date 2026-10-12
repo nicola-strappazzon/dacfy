@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"sync"
 
 	"github.com/nicola-strappazzon/dacfy/backfill"
 	"github.com/nicola-strappazzon/dacfy/clickhouse"
@@ -11,9 +10,9 @@ import (
 	"github.com/nicola-strappazzon/dacfy/drop"
 	"github.com/nicola-strappazzon/dacfy/ping"
 	"github.com/nicola-strappazzon/dacfy/pipelines"
+	"github.com/nicola-strappazzon/dacfy/progress"
 	"github.com/nicola-strappazzon/dacfy/query"
 	"github.com/nicola-strappazzon/dacfy/swap"
-	"github.com/nicola-strappazzon/dacfy/terminal"
 	"github.com/nicola-strappazzon/dacfy/version"
 
 	"github.com/spf13/cobra"
@@ -21,14 +20,9 @@ import (
 
 var ch = clickhouse.Instance()
 var pl = pipelines.Instance()
-var tt = terminal.Terminal{}
-
-type progressHandler struct {
-	mu sync.Mutex
-}
 
 func init() {
-	ch.SetLogger(&progressHandler{})
+	ch.SetLogger(progress.NewHandler())
 }
 
 func main() {
@@ -110,12 +104,4 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
-}
-
-func (p *progressHandler) WriteProgress(in clickhouse.Progress) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
-	tt.New()
-	tt.Write(in.ToString())
 }
