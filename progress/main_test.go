@@ -13,6 +13,8 @@ import (
 type concurrentWriter struct {
 	mu        sync.Mutex
 	active    int
+	completes int
+	finishes  int
 	maxActive int
 	writes    int
 }
@@ -33,6 +35,18 @@ func (w *concurrentWriter) WriteProgress(clickhouse.Progress) {
 	w.mu.Unlock()
 }
 
+func (w *concurrentWriter) FinishProgress() {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.finishes++
+}
+
+func (w *concurrentWriter) CompleteProgress() {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.completes++
+}
+
 func TestHandlerSerializesProgressWrites(t *testing.T) {
 	writer := &concurrentWriter{}
 	handler := newHandler(writer)
@@ -49,4 +63,23 @@ func TestHandlerSerializesProgressWrites(t *testing.T) {
 
 	assert.Equal(t, 10, writer.writes)
 	assert.Equal(t, 1, writer.maxActive)
+}
+
+func TestHandlerFinishesProgressOnce(t *testing.T) {
+	writer := &concurrentWriter{}
+	handler := newHandler(writer)
+
+	handler.FinishProgress()
+
+	assert.Equal(t, 1, writer.finishes)
+}
+
+func TestHandlerCompletesProgressWithoutFinishingIt(t *testing.T) {
+	writer := &concurrentWriter{}
+	handler := newHandler(writer)
+
+	handler.CompleteProgress()
+
+	assert.Equal(t, 1, writer.completes)
+	assert.Zero(t, writer.finishes)
 }
