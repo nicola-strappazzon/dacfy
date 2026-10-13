@@ -167,12 +167,15 @@ func runChunked() (err error) {
 		return err
 	}
 
-	pl.Table.Name = pl.View.To
+	table := pl.Table
+	if pl.View.Materialized {
+		table.Name = pl.View.To
+	}
 
 	if truncate {
-		stmt := pl.Table.SetSuffix(pl.Config.Suffix).Truncate().SQL()
+		stmt := table.SetSuffix(pl.Config.Suffix).Truncate().SQL()
 		if !pl.Config.DryRun {
-			fmt.Println("--> Truncate table:", pl.Table.SetSuffix(pl.Config.Suffix).Name.ToString())
+			fmt.Println("--> Truncate table:", table.SetSuffix(pl.Config.Suffix).Name.ToString())
 		}
 		if !pl.Config.DryRun {
 			if err := ch.Execute(stmt, false); err != nil {
