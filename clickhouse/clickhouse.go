@@ -115,10 +115,12 @@ func (ch *ClickHouse) ExecuteWitchLogger(in string) error {
 	)
 
 	if err := ch.Connection.Exec(ctx, in); err != nil {
+		finishProgress()
 		return err
 	}
 
 	ch.WriteProcess()
+	completeProgress()
 
 	return nil
 }
@@ -126,6 +128,18 @@ func (ch *ClickHouse) ExecuteWitchLogger(in string) error {
 func (ch *ClickHouse) WriteProcess() {
 	ch.GatherSystemProcess()
 	loggerProgress.WriteProgress(ch.Progress)
+}
+
+func finishProgress() {
+	if finalizer, ok := loggerProgress.(LoggerProgressFinalizer); ok {
+		finalizer.FinishProgress()
+	}
+}
+
+func completeProgress() {
+	if completer, ok := loggerProgress.(LoggerProgressCompleter); ok {
+		completer.CompleteProgress()
+	}
 }
 
 func (ch *ClickHouse) GatherSystemProcess() error {

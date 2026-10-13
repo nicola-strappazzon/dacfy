@@ -14,6 +14,14 @@ type LoggerProgress interface {
 	WriteProgress(in Progress)
 }
 
+type LoggerProgressFinalizer interface {
+	FinishProgress()
+}
+
+type LoggerProgressCompleter interface {
+	CompleteProgress()
+}
+
 type Progress struct {
 	Start      time.Time
 	ReadRows   uint64
