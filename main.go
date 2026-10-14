@@ -13,6 +13,7 @@ import (
 	"github.com/nicola-strappazzon/dacfy/progress"
 	"github.com/nicola-strappazzon/dacfy/query"
 	"github.com/nicola-strappazzon/dacfy/swap"
+	"github.com/nicola-strappazzon/dacfy/test"
 	"github.com/nicola-strappazzon/dacfy/version"
 
 	"github.com/spf13/cobra"
@@ -71,6 +72,9 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 
 				pl.SetParents()
 
+				if cmd.Name() == "test" && pl.Config.DryRun {
+					return nil
+				}
 				return ch.Connect()
 			}
 			if pl.Config.Pipe == "" {
@@ -99,6 +103,7 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 	rootCmd.AddCommand(ping.NewCommand())
 	rootCmd.AddCommand(query.NewCommand())
 	rootCmd.AddCommand(swap.NewCommand())
+	rootCmd.AddCommand(test.NewCommand())
 	rootCmd.AddCommand(version.NewCommand())
 
 	if err := rootCmd.Execute(); err != nil {
