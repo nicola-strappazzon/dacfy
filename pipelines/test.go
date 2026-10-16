@@ -20,6 +20,11 @@ type Test struct {
 	Where    Where            `yaml:"where"`
 }
 
+func (t Test) SetSuffix(in string) Test {
+	t.Table = t.Table.Suffix(in)
+	return t
+}
+
 func (t Test) Validate() error {
 	if t.Name.IsNotValid() {
 		return fmt.Errorf("test.name %q is invalid; must start with a letter and contain only letters, digits or underscores (max 255 characters)", t.Name.ToString())

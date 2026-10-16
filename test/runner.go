@@ -42,6 +42,7 @@ func (r runner) Run() error {
 }
 
 func (r runner) RunTest(item pipelines.Test) ([]outcome, error) {
+	item = item.SetSuffix(r.pipeline.Config.Suffix)
 	statement, err := item.SQL(r.pipeline.Database.Name)
 	if err != nil {
 		return nil, fmt.Errorf("test %q: %w", item.Name.ToString(), err)
