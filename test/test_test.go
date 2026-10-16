@@ -122,3 +122,39 @@ func TestCommandRequiresYAMLFile(t *testing.T) {
 	cmd := NewCommand()
 	assert.EqualError(t, cmd.Args(cmd, nil), "missing YAML file")
 }
+
+func TestRunnerSuffixAppliesToAllModes(t *testing.T) {
+	cases := []struct {
+		name   string
+		item   pipelines.Test
+		result clickhouse.Result
+	}{
+		{"expected", exampleTest(), exampleResult([]any{101, 25}, []any{205, 7})},
+		{"unique", pipelines.Test{Name: "unique_ids", Table: "daily_revenue", Unique: []string{"id"}}, exampleResult()},
+		{"checks", pipelines.Test{Name: "not_null", Table: "daily_revenue", Checks: []pipelines.Check{{Field: "id", NotNull: true}}}, exampleResult([]any{uint64(0)})},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			pipeline := examplePipeline([]pipelines.Test{tc.item})
+			pipeline.Config.Suffix = "_v7"
+			calls := 0
+			r := runner{out: &bytes.Buffer{}, pipeline: pipeline, query: queryFunc(func(sql string) (clickhouse.Result, error) {
+				calls++
+				assert.Contains(t, sql, "FROM analytics.daily_revenue_v7")
+				assert.NotContains(t, sql, "_v7_v7")
+				return tc.result, nil
+			})}
+			assert.NoError(t, r.Run())
+			assert.NoError(t, r.Run())
+			assert.Equal(t, 2, calls)
+			assert.Equal(t, pipelines.Name("daily_revenue"), pipeline.Tests[0].Table)
+
+			var out bytes.Buffer
+			r.out = &out
+			pipeline.Config.DryRun = true
+			assert.NoError(t, r.Run())
+			assert.Contains(t, out.String(), "FROM analytics.daily_revenue_v7")
+			assert.Equal(t, 2, calls)
+		})
+	}
+}

@@ -12,6 +12,17 @@ dacfy test pipeline.yaml --dry-run
 and prints their SQL without connecting to ClickHouse. A missing file, invalid
 test, query error, or failed assertion exits with a nonzero status.
 
+Use base table names in the manifest and pass `--suffix` to select a version:
+
+```bash
+dacfy test pipeline.yaml --suffix _v7
+```
+
+With `table: malware`, all test modes query `analytics.malware_v7`. The suffix
+is appended literally to each test's table name; it does not replace an existing
+version in the manifest or change the database name, field names, or `where`
+expression. Without `--suffix`, the table name is used as written.
+
 Each test uses one of three modes:
 
 ```yaml
