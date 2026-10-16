@@ -102,3 +102,49 @@ view:
 	assert.Equal(t, "Stores raw events.\nRetained for 30 days.\n", p.Table.Description)
 	assert.Equal(t, "Aggregates events by day.\nUsed by the analytics dashboard.\n", p.View.Description)
 }
+
+func TestPipelines_LoadTests(t *testing.T) {
+	yaml := `database:
+  name: analytics
+table:
+  name: daily_revenue
+tests:
+  - name: daily_revenue_examples
+    table: daily_revenue
+    key: [day, country]
+    expected:
+      - { day: "2026-01-01", country: ES, revenue: 25, approved: true }
+      - { day: "2026-01-02", country: ES, revenue: null, approved: false }
+  - name: revenue_unique
+    table: daily_revenue
+    unique: [day, country]
+    where: "country = 'ES'"
+  - name: revenue_quality
+    table: daily_revenue
+    checks:
+      - { field: revenue, not_null: true }
+      - { field: revenue, between: [0, 100] }
+      - { field: revenue, gt: 0 }
+`
+	path := filepath.Join(t.TempDir(), "tests.yaml")
+	require.NoError(t, os.WriteFile(path, []byte(yaml), 0o644))
+
+	p := &pipelines.Pipelines{}
+	require.NoError(t, p.LoadFile(path))
+
+	require.Len(t, p.Tests, 3)
+	assert.Equal(t, pipelines.Name("daily_revenue_examples"), p.Tests[0].Name)
+	assert.Equal(t, []string{"day", "country"}, p.Tests[0].Key)
+	assert.Equal(t, "ES", p.Tests[0].Expected[0]["country"])
+	assert.Nil(t, p.Tests[0].Expected[1]["revenue"])
+	assert.Equal(t, []string{"day", "country"}, p.Tests[1].Unique)
+	assert.Equal(t, "country = 'ES'", p.Tests[1].Where.ToString())
+	require.Len(t, p.Tests[2].Checks, 3)
+	assert.True(t, p.Tests[2].Checks[0].NotNull)
+	assert.Equal(t, []float64{0, 100}, p.Tests[2].Checks[1].Between)
+	require.NotNil(t, p.Tests[2].Checks[2].GT)
+	assert.Zero(t, *p.Tests[2].Checks[2].GT)
+	for _, item := range p.Tests {
+		assert.NoError(t, item.Validate())
+	}
+}

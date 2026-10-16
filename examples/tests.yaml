@@ -1,0 +1,26 @@
+# Run against existing data: dacfy test examples/tests.yaml
+# Preview the SQL without connecting: dacfy test examples/tests.yaml --dry-run
+database:
+  name: analytics
+
+tests:
+  - name: malware_examples
+    table: malware
+    key: [id]
+    expected:
+      - { id: 101, score: 25 }
+      - { id: 205, score: 7 }
+
+  - name: malware_unique
+    table: malware
+    unique: [sha256, source]
+    where: "source = 'vendor_a'"
+
+  - name: malware_quality
+    table: malware
+    where: "source = 'vendor_a'"
+    checks:
+      - { field: sha256, not_null: true }
+      - { field: score, not_null: true }
+      - { field: score, between: [0, 100] }
+      - { field: size, gt: 0 }
