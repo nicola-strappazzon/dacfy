@@ -13,6 +13,7 @@ tests:
 
   - name: malware_unique
     table: malware
+    final: false # Set true when the engine supports FINAL and merged data should be checked.
     unique: [sha256, source]
     where: "source = 'vendor_a'"
 

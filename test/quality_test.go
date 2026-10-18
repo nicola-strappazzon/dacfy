@@ -15,9 +15,9 @@ func TestRunnerUnique(t *testing.T) {
 		var out bytes.Buffer
 		r := runner{
 			out:      &out,
-			pipeline: examplePipeline([]pipelines.Test{{Name: "unique_ids", Table: "events", Unique: []string{"id"}}}),
+			pipeline: examplePipeline([]pipelines.Test{{Name: "unique_ids", Table: "events", Final: true, Unique: []string{"id"}}}),
 			query: queryFunc(func(sql string) (clickhouse.Result, error) {
-				assert.Equal(t, "SELECT id, count() FROM analytics.events GROUP BY id HAVING count() > 1 ORDER BY id", sql)
+				assert.Equal(t, "SELECT id, count() FROM analytics.events FINAL GROUP BY id HAVING count() > 1 ORDER BY id", sql)
 				if duplicate {
 					return exampleResult([]any{101, uint64(2)}), nil
 				}
