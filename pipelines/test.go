@@ -13,6 +13,7 @@ import (
 type Test struct {
 	Checks   []Check          `yaml:"checks"`
 	Expected []map[string]any `yaml:"expected"`
+	Final    bool             `yaml:"final"`
 	Key      []string         `yaml:"key"`
 	Name     Name             `yaml:"name"`
 	Table    Name             `yaml:"table"`
@@ -132,6 +133,9 @@ func (t Test) SQL(database Name) (string, error) {
 	}
 
 	from := database.ToString() + "." + t.Table.ToString()
+	if t.Final {
+		from += " FINAL"
+	}
 	filter := ""
 	if t.Where.IsNotEmpty() {
 		filter = " WHERE (" + t.Where.ToString() + ")"

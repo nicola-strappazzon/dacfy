@@ -62,6 +62,19 @@ tests:
   `between` includes both bounds. Numeric rules skip nulls; add a separate
   `not_null` check when nulls must also fail. Bounds must be finite numbers.
 
+`final` is an optional boolean supported by all three modes and defaults to
+`false`. Set `final: true` to add `FINAL` after the table name, before filtering
+and grouping, applying the table engine's merge logic at query time. The engine
+must support `FINAL`; it is not detected automatically. For example:
+
+```yaml
+tests:
+  - name: malware_unique
+    table: ds_mv_imp_malware
+    final: true
+    unique: [sha256]
+```
+
 `where` is an optional SQL expression supported by all three modes. Without a
 filter, `unique` and `checks` examine the whole table. With no matching rows these
 two modes pass; use `expected` when particular records must exist. Tests query

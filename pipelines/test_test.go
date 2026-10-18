@@ -1,8 +1,10 @@
 package pipelines_test
 
 import (
+	"fmt"
 	"testing"
 
+	"github.com/goccy/go-yaml"
 	"github.com/nicola-strappazzon/dacfy/pipelines"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -64,6 +66,44 @@ func TestUniqueSQL(t *testing.T) {
 	sql, err := item.SQL("analytics")
 	require.NoError(t, err)
 	assert.Equal(t, "SELECT source, id, count() FROM analytics.events WHERE (active = true) GROUP BY source, id HAVING count() > 1 ORDER BY source, id", sql)
+}
+
+func TestFinalSQLFromYAML(t *testing.T) {
+	modes := []struct {
+		name string
+		yaml string
+		sql  string
+	}{
+		{"unique", "unique: [id]\n", "SELECT id, count() FROM analytics.events_v7%s WHERE (active = true) GROUP BY id HAVING count() > 1 ORDER BY id"},
+		{"expected", "key: [id]\nexpected: [{id: 1}]\n", "SELECT id FROM analytics.events_v7%s WHERE (active = true) AND (id IN (1))"},
+		{"checks", "checks: [{field: id, not_null: true}]\n", "SELECT countIf(id IS NULL) FROM analytics.events_v7%s WHERE (active = true)"},
+	}
+	for _, mode := range modes {
+		for _, option := range []struct {
+			name  string
+			yaml  string
+			final string
+		}{
+			{"omitted", "", ""},
+			{"false", "final: false\n", ""},
+			{"true", "final: true\n", " FINAL"},
+		} {
+			t.Run(mode.name+"/"+option.name, func(t *testing.T) {
+				var item pipelines.Test
+				require.NoError(t, yaml.Unmarshal([]byte("name: events\ntable: events\nwhere: active = true\n"+mode.yaml+option.yaml), &item))
+				sql, err := item.SetSuffix("_v7").SQL("analytics")
+				require.NoError(t, err)
+				assert.Equal(t, fmt.Sprintf(mode.sql, option.final), sql)
+			})
+		}
+	}
+}
+
+func TestFinalRejectsInvalidYAML(t *testing.T) {
+	for _, value := range []string{"sometimes", "[true]", "{enabled: true}"} {
+		var item pipelines.Test
+		assert.Error(t, yaml.Unmarshal([]byte("final: "+value), &item))
+	}
 }
 
 func TestChecksSQL(t *testing.T) {
