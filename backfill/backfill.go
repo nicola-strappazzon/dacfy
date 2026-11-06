@@ -17,7 +17,7 @@ const dateFormat = "2006-01-02 15:04:05"
 var ch = clickhouse.Instance()
 var pl = pipelines.Instance()
 
-var truncate bool
+var truncate, detach bool
 var from, to, chunk string
 
 func NewCommand() *cobra.Command {
@@ -28,6 +28,7 @@ func NewCommand() *cobra.Command {
   dacfy backfill foo.yaml
   dacfy backfill foo.yaml --from '2026-05-01 00:00:00' --to '2026-06-30 23:59:59'
   dacfy backfill foo.yaml --from '2026-05-01 00:00:00' --to '2026-06-30 23:59:59' --chunk 1d
+  dacfy backfill foo.yaml --detach
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return Run()
@@ -37,6 +38,7 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().BoolVarP(&truncate, "truncate", "t", false, "Truncate the table before execution (this will delete all data)")
 	cmd.Flags().StringVar(&from, "from", "", "Start datetime for chunk mode (YYYY-MM-DD HH:MM:SS)")
 	cmd.Flags().StringVar(&to, "to", "", "End datetime for chunk mode (YYYY-MM-DD HH:MM:SS)")
+	cmd.Flags().BoolVar(&detach, "detach", false, "Run the backfill in the server background and return its query ID")
 	cmd.Flags().StringVar(&chunk, "chunk", "1d", "Chunk size: Nh (hours), Nd (days), NM (months)")
 
 	return cmd
@@ -45,6 +47,16 @@ func NewCommand() *cobra.Command {
 func Run() (err error) {
 	if (from == "") != (to == "") {
 		return fmt.Errorf("--from and --to must both be specified")
+	}
+
+	if from != "" && detach {
+		return fmt.Errorf("--detach cannot be combined with --from and --to")
+	}
+
+	if detach && !pl.Config.DryRun {
+		if err = ch.ValidateBackgroundQueries(); err != nil {
+			return err
+		}
 	}
 
 	if from != "" && to != "" {
@@ -109,7 +121,13 @@ func runFull() (err error) {
 			continue
 		}
 
-		if err := ch.Execute(query.Statement, query.Progress); err != nil {
+		if query.Progress {
+			err = executeBackfill(query.Statement)
+		} else {
+			err = ch.Execute(query.Statement, false)
+		}
+
+		if err != nil {
 			return err
 		}
 	}
@@ -135,11 +153,30 @@ func runFullFromTableQuery() (err error) {
 		return err
 	}
 
-	if err = ch.Execute(pl.Table.Query.ToString(), true); err != nil {
+	if err = executeBackfill(pl.Table.Query.ToString()); err != nil {
 		return err
 	}
 
 	fmt.Println("")
+	return nil
+}
+
+// executeBackfill runs the backfill statement with progress, or submits it to
+// the server background when --detach is set.
+func executeBackfill(statement string) error {
+	if !detach {
+		return ch.Execute(statement, true)
+	}
+
+	queryID, err := ch.ExecuteInBackground(statement)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("--> Backfill running in background, query id:", queryID)
+	fmt.Printf("    Running:  SELECT elapsed, read_rows, written_rows, memory_usage FROM system.processes WHERE query_id = '%s';\n", queryID)
+	fmt.Printf("    Finished: SELECT type, query_duration_ms, written_rows, exception FROM system.query_log WHERE query_id = '%s' AND type != 'QueryStart';\n", queryID)
+
 	return nil
 }
 

@@ -27,6 +27,11 @@ Verify the connection with:
 dacfy ping
 ```
 
+## Backfill
+
+See the [backfill documentation](docs/backfill.md) for chunked and background
+(`--detach`) execution.
+
 ## Test existing data
 
 See the [testing documentation](docs/tests.md) to validate transformations,

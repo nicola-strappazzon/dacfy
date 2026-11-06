@@ -35,3 +35,39 @@ func TestRunChunkedTableQueryTruncateKeepsTableName(t *testing.T) {
 	assert.NoError(t, runChunked())
 	assert.Equal(t, pipelines.Name("daily_revenue"), pl.Table.Name)
 }
+
+func TestRunRejectsDetachWithChunkRange(t *testing.T) {
+	previousFrom, previousTo, previousDetach := from, to, detach
+	t.Cleanup(func() {
+		from, to, detach = previousFrom, previousTo, previousDetach
+	})
+
+	from = "2026-01-01 00:00:00"
+	to = "2026-01-02 00:00:00"
+	detach = true
+
+	assert.EqualError(t, Run(), "--detach cannot be combined with --from and --to")
+}
+
+func TestRunDetachDryRunDoesNotExecute(t *testing.T) {
+	previousConfig := pl.Config
+	previousFrom, previousTo, previousDetach := from, to, detach
+	t.Cleanup(func() {
+		pl.Reset()
+		pl.Config = previousConfig
+		pl.SetParents()
+		from, to, detach = previousFrom, previousTo, previousDetach
+	})
+
+	pl.Reset()
+	pl.Config = pipelines.Config{DryRun: true}
+	pl.Database.Name = "analytics"
+	pl.Table.Name = "daily_revenue"
+	pl.Table.Query = "INSERT INTO daily_revenue SELECT day, sum(amount) FROM orders GROUP BY day"
+	pl.SetParents()
+
+	from, to = "", ""
+	detach = true
+
+	assert.NoError(t, Run())
+}

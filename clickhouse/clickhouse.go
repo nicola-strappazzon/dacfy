@@ -99,6 +99,42 @@ func (ch *ClickHouse) ExecuteWitchOutLogger(in string) error {
 	return nil
 }
 
+// ValidateBackgroundQueries returns an error when the server does not support
+// the run_query_in_background setting used by ExecuteInBackground.
+func (ch *ClickHouse) ValidateBackgroundQueries() error {
+	var version string
+	var count uint64
+
+	sql := "SELECT version(), count() FROM system.settings WHERE name = 'run_query_in_background'"
+	if err := ch.Connection.QueryRow(ch.Context, sql).Scan(&version, &count); err != nil {
+		return fmt.Errorf("check background query support: %w", err)
+	}
+
+	if count == 0 {
+		return fmt.Errorf("ClickHouse server %s does not support background queries (setting run_query_in_background not found)", version)
+	}
+
+	return nil
+}
+
+// ExecuteInBackground submits the statement with run_query_in_background=1, so
+// the server keeps running it after the client disconnects. It returns the
+// query ID to track the query in system.processes and system.query_log.
+func (ch *ClickHouse) ExecuteInBackground(in string) (string, error) {
+	queryID := ch.NewQueryID()
+
+	ctx := clickhouse.Context(context.Background(),
+		clickhouse.WithQueryID(queryID),
+		clickhouse.WithSettings(clickhouse.Settings{"run_query_in_background": 1}),
+	)
+
+	if err := ch.Connection.Exec(ctx, in); err != nil {
+		return "", fmt.Errorf("submit background query %s: %w", queryID, err)
+	}
+
+	return queryID, nil
+}
+
 func (ch *ClickHouse) ExecuteWitchLogger(in string) error {
 	ch.Progress.StartNow()
 	ch.NewQueryID()
