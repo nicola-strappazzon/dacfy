@@ -24,7 +24,7 @@ type Pipelines struct {
 	Config      Config   `yaml:"-"`
 	Database    Database `yaml:"database"`
 	Description string   `yaml:"description"`
-	Pipelines   []string `yaml:"pipelines"`
+	Pipelines   []Step   `yaml:"pipelines"`
 	Table       Table    `yaml:"table"`
 	Tests       []Test   `yaml:"tests"`
 	User        User     `yaml:"user"`
