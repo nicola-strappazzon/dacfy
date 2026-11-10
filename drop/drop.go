@@ -55,7 +55,11 @@ func Run() error {
 		files := pl.Pipelines
 
 		for i := len(files) - 1; i >= 0; i-- {
-			if err := pl.LoadFile(filepath.Join(base, files[i])); err != nil {
+			if files[i].Backfill {
+				continue
+			}
+
+			if err := pl.LoadFile(filepath.Join(base, files[i].File)); err != nil {
 				return err
 			}
 

@@ -2,6 +2,7 @@ package backfill
 
 import (
 	"fmt"
+	"io"
 	"strconv"
 	"time"
 
@@ -12,15 +13,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const dateFormat = "2006-01-02 15:04:05"
+const (
+	dateFormat   = "2006-01-02 15:04:05"
+	defaultChunk = "1d"
+)
 
 var ch = clickhouse.Instance()
 var pl = pipelines.Instance()
 
-var truncate bool
-var from, to, chunk string
-
 func NewCommand() *cobra.Command {
+	var options pipelines.BackfillOptions
+
 	var cmd = &cobra.Command{
 		Use:   "backfill",
 		Short: "Backfill tables as defined in the pipelines.",
@@ -30,33 +33,85 @@ func NewCommand() *cobra.Command {
   dacfy backfill foo.yaml --from '2026-05-01 00:00:00' --to '2026-06-30 23:59:59' --chunk 1d
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return Run()
+			return NewRunner(cmd.OutOrStdout(), options).Run()
 		},
 	}
 
-	cmd.Flags().BoolVarP(&truncate, "truncate", "t", false, "Truncate the table before execution (this will delete all data)")
-	cmd.Flags().StringVar(&from, "from", "", "Start datetime for chunk mode (YYYY-MM-DD HH:MM:SS)")
-	cmd.Flags().StringVar(&to, "to", "", "End datetime for chunk mode (YYYY-MM-DD HH:MM:SS)")
-	cmd.Flags().StringVar(&chunk, "chunk", "1d", "Chunk size: Nh (hours), Nd (days), NM (months)")
+	cmd.Flags().BoolVarP(&options.Truncate, "truncate", "t", false, "Truncate the table before execution (this will delete all data)")
+	cmd.Flags().StringVar(&options.From, "from", "", "Start datetime for chunk mode (YYYY-MM-DD HH:MM:SS)")
+	cmd.Flags().StringVar(&options.To, "to", "", "End datetime for chunk mode (YYYY-MM-DD HH:MM:SS)")
+	cmd.Flags().StringVar(&options.Chunk, "chunk", defaultChunk, "Chunk size: Nh (hours), Nd (days), NM (months)")
 
 	return cmd
 }
 
-func Run() (err error) {
-	if (from == "") != (to == "") {
-		return fmt.Errorf("--from and --to must both be specified")
-	}
-
-	if from != "" && to != "" {
-		return runChunked()
-	}
-
-	return runFull()
+// Runner runs a backfill of the loaded pipeline with the given options and
+// writes its messages to out.
+type Runner struct {
+	out     io.Writer
+	options pipelines.BackfillOptions
 }
 
-func runFull() (err error) {
+// NewRunner returns a Runner. An empty chunk size uses the default chunk size.
+func NewRunner(out io.Writer, options pipelines.BackfillOptions) Runner {
+	if options.Chunk == "" {
+		options.Chunk = defaultChunk
+	}
+
+	return Runner{out: out, options: options}
+}
+
+// Validate checks the options without running the backfill.
+func (r Runner) Validate() error {
+	if !r.isChunked() {
+		return nil
+	}
+
+	_, _, _, _, err := r.chunkRange()
+	return err
+}
+
+func (r Runner) Run() error {
+	if err := r.Validate(); err != nil {
+		return err
+	}
+
+	if r.isChunked() {
+		return r.runChunked()
+	}
+
+	return r.runFull()
+}
+
+func (r Runner) isChunked() bool {
+	return r.options.From != "" || r.options.To != ""
+}
+
+// chunkRange parses the date range and the chunk size.
+func (r Runner) chunkRange() (from, to time.Time, n int, unit byte, err error) {
+	if r.options.From == "" || r.options.To == "" {
+		return from, to, n, unit, fmt.Errorf("--from and --to must both be specified")
+	}
+
+	if from, err = parseDate(r.options.From); err != nil {
+		return from, to, n, unit, fmt.Errorf("--from: %w", err)
+	}
+
+	if to, err = parseDate(r.options.To); err != nil {
+		return from, to, n, unit, fmt.Errorf("--to: %w", err)
+	}
+
+	if !from.Before(to) {
+		return from, to, n, unit, fmt.Errorf("--from must be before --to")
+	}
+
+	n, unit, err = parseChunk(r.options.Chunk)
+	return from, to, n, unit, err
+}
+
+func (r Runner) runFull() (err error) {
 	if pl.View.Name.IsEmpty() && pl.Table.Query.IsNotEmpty() {
-		return runFullFromTableQuery()
+		return r.runFullFromTableQuery()
 	}
 
 	if err = pl.Backfill.Validate(); err != nil {
@@ -75,7 +130,7 @@ func runFull() (err error) {
 			Statement: pl.Table.SetSuffix(pl.Config.Suffix).Truncate().SQL(),
 			Message: fmt.Sprintf(
 				"Truncate table: %s", pl.Table.SetSuffix(pl.Config.Suffix).Name.ToString()),
-			Execute: truncate,
+			Execute: r.options.Truncate,
 		},
 		{
 			Statement: pl.Backfill.Suffix(pl.Config.Suffix).Do().SQL(),
@@ -98,11 +153,11 @@ func runFull() (err error) {
 		}
 
 		if !pl.Config.DryRun && strings.IsNotEmpty(query.Message) {
-			fmt.Println("-->", query.Message)
+			fmt.Fprintln(r.out, "-->", query.Message)
 		}
 
 		if pl.Config.SQL {
-			fmt.Println(query.Statement + ";")
+			fmt.Fprintln(r.out, query.Statement+";")
 		}
 
 		if pl.Config.DryRun {
@@ -114,17 +169,17 @@ func runFull() (err error) {
 		}
 	}
 
-	fmt.Println("")
+	fmt.Fprintln(r.out, "")
 	return nil
 }
 
-func runFullFromTableQuery() (err error) {
+func (r Runner) runFullFromTableQuery() (err error) {
 	if !pl.Config.DryRun {
-		fmt.Println("--> Starting backfill from table query into:", pl.Table.Name.ToString())
+		fmt.Fprintln(r.out, "--> Starting backfill from table query into:", pl.Table.Name.ToString())
 	}
 
 	if pl.Config.SQL {
-		fmt.Println(pl.Table.Query.ToString() + ";")
+		fmt.Fprintln(r.out, pl.Table.Query.ToString()+";")
 	}
 
 	if pl.Config.DryRun {
@@ -139,30 +194,16 @@ func runFullFromTableQuery() (err error) {
 		return err
 	}
 
-	fmt.Println("")
+	fmt.Fprintln(r.out, "")
 	return nil
 }
 
-func runChunked() (err error) {
+func (r Runner) runChunked() (err error) {
 	if err = pl.Backfill.ValidateChunk(); err != nil {
 		return err
 	}
 
-	fromTime, err := parseDate(from)
-	if err != nil {
-		return fmt.Errorf("--from: %w", err)
-	}
-
-	toTime, err := parseDate(to)
-	if err != nil {
-		return fmt.Errorf("--to: %w", err)
-	}
-
-	if !fromTime.Before(toTime) {
-		return fmt.Errorf("--from must be before --to")
-	}
-
-	n, unit, err := parseChunk(chunk)
+	fromTime, toTime, n, unit, err := r.chunkRange()
 	if err != nil {
 		return err
 	}
@@ -172,10 +213,10 @@ func runChunked() (err error) {
 		table.Name = pl.View.To
 	}
 
-	if truncate {
+	if r.options.Truncate {
 		stmt := table.SetSuffix(pl.Config.Suffix).Truncate().SQL()
 		if !pl.Config.DryRun {
-			fmt.Println("--> Truncate table:", table.SetSuffix(pl.Config.Suffix).Name.ToString())
+			fmt.Fprintln(r.out, "--> Truncate table:", table.SetSuffix(pl.Config.Suffix).Name.ToString())
 		}
 		if !pl.Config.DryRun {
 			if err := ch.Execute(stmt, false); err != nil {
@@ -197,20 +238,20 @@ func runChunked() (err error) {
 		dateTo := next.Format(dateFormat)
 
 		if !pl.Config.DryRun {
-			fmt.Printf("--> Chunk %d/%d: %s => %s\n", i, total, dateFrom, dateTo)
+			fmt.Fprintf(r.out, "--> Chunk %d/%d: %s => %s\n", i, total, dateFrom, dateTo)
 		}
 
 		q := pl.Backfill.Suffix(pl.Config.Suffix).DoChunk(dateFrom, dateTo)
 
 		if pl.Config.SQL {
-			fmt.Println(q.SQL() + ";")
+			fmt.Fprintln(r.out, q.SQL()+";")
 		}
 
 		if !pl.Config.DryRun {
 			if err := ch.Execute(q.SQL(), true); err != nil {
 				return fmt.Errorf("chunk %d/%d failed: %w", i, total, err)
 			}
-			fmt.Println()
+			fmt.Fprintln(r.out)
 		}
 
 		current = next

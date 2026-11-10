@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/nicola-strappazzon/dacfy/backfill"
 	"github.com/nicola-strappazzon/dacfy/clickhouse"
 	"github.com/nicola-strappazzon/dacfy/pipelines"
 	"github.com/nicola-strappazzon/dacfy/strings"
@@ -33,23 +34,47 @@ func Run(cmd *cobra.Command) error {
 	created := map[string]bool{}
 
 	if len(pl.Pipelines) > 0 {
-		base := filepath.Dir(pl.Config.Pipe)
-		files := pl.Pipelines
-
-		for _, file := range files {
-			if err := pl.LoadFile(filepath.Join(base, file)); err != nil {
-				return err
-			}
-
-			if err := run(cmd, created); err != nil {
-				return err
-			}
-		}
-
-		return nil
+		return runSteps(cmd, created)
 	}
 
 	return run(cmd, created)
+}
+
+// runSteps runs the create and backfill steps of a main file in list order.
+// It checks the options of all backfill steps before the first step runs.
+func runSteps(cmd *cobra.Command, created map[string]bool) error {
+	base := filepath.Dir(pl.Config.Pipe)
+	steps := pl.Pipelines
+
+	for _, step := range steps {
+		if !step.Backfill {
+			continue
+		}
+
+		if err := backfill.NewRunner(cmd.OutOrStdout(), step.Options).Validate(); err != nil {
+			return fmt.Errorf("backfill %s: %w", step.File, err)
+		}
+	}
+
+	for _, step := range steps {
+		if err := pl.LoadFile(filepath.Join(base, step.File)); err != nil {
+			return err
+		}
+
+		if step.Backfill {
+			if err := backfill.NewRunner(cmd.OutOrStdout(), step.Options).Run(); err != nil {
+				return fmt.Errorf("backfill %s: %w", step.File, err)
+			}
+
+			continue
+		}
+
+		if err := run(cmd, created); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func run(cmd *cobra.Command, created map[string]bool) (err error) {

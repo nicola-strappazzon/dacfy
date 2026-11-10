@@ -27,6 +27,11 @@ Verify the connection with:
 dacfy ping
 ```
 
+## Main pipelines file
+
+See the [main pipelines file documentation](docs/pipelines.md) to run create
+and backfill steps in order from one file.
+
 ## Test existing data
 
 See the [testing documentation](docs/tests.md) to validate transformations,

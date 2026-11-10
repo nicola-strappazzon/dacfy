@@ -312,3 +312,101 @@ pipelines:
 	assert.Contains(t, out, "GRANT SELECT ON foo.* TO bar;")
 	assert.Less(t, strings.Index(out, "CREATE DATABASE"), strings.Index(out, "CREATE USER"), "database must be created before the user")
 }
+
+func TestCommand_StepsWithBackfill(t *testing.T) {
+	dir := t.TempDir()
+
+	assert.NoError(t, os.WriteFile(filepath.Join(dir, "ds.yaml"), []byte(`---
+database:
+  name: malware_search
+table:
+  name: ds_imp_malware_jobs
+  engine: MergeTree
+  order_by: [id]
+  columns:
+    - { name: id, type: UInt64 }
+    - { name: created_at, type: DateTime }
+  query: |
+    INSERT INTO malware_search.ds_imp_malware_jobs SELECT * FROM malware_search.cn_imp_malware_jobs
+  backfill:
+    where: "created_at >= '{date_from}' AND created_at < '{date_to}'"
+`), 0600))
+
+	assert.NoError(t, os.WriteFile(filepath.Join(dir, "cn.yaml"), []byte(`---
+database:
+  name: malware_search
+table:
+  name: cn_imp_malware_jobs
+  engine: MergeTree
+  order_by: [id]
+  columns:
+    - { name: id, type: UInt64 }
+    - { name: created_at, type: DateTime }
+`), 0600))
+
+	assert.NoError(t, os.WriteFile(filepath.Join(dir, "main.yaml"), []byte(`---
+pipelines:
+  - ds.yaml
+  - cn.yaml
+  - backfill: ds.yaml
+    from: "2025-02-03 00:00:00"
+    to: "2025-02-05 00:00:00"
+    chunk: 1d
+  - backfill: ds.yaml
+`), 0600))
+
+	var buf bytes.Buffer
+
+	load(filepath.Join(dir, "main.yaml"))
+
+	cmd := create.NewCommand()
+	cmd.SetOut(&buf)
+	cmd.SetErr(&buf)
+
+	err := cmd.Execute()
+	out := buf.String()
+
+	assert.NoError(t, err)
+
+	createDS := strings.Index(out, "CREATE TABLE IF NOT EXISTS malware_search.ds_imp_malware_jobs")
+	createCN := strings.Index(out, "CREATE TABLE IF NOT EXISTS malware_search.cn_imp_malware_jobs")
+	chunk1 := strings.Index(out, "WHERE created_at >= '2025-02-03 00:00:00' AND created_at < '2025-02-04 00:00:00';")
+	chunk2 := strings.Index(out, "WHERE created_at >= '2025-02-04 00:00:00' AND created_at < '2025-02-05 00:00:00';")
+	full := strings.LastIndex(out, "INSERT INTO malware_search.ds_imp_malware_jobs SELECT * FROM malware_search.cn_imp_malware_jobs;")
+
+	assert.NotEqual(t, -1, createDS)
+	assert.Less(t, createDS, createCN, "ds must be created before cn")
+	assert.Less(t, createCN, chunk1, "backfill must run after cn is created")
+	assert.Less(t, chunk1, chunk2, "chunks must run in order")
+	assert.Less(t, chunk2, full, "full backfill must run after the chunked backfill")
+}
+
+func TestCommand_StepsRejectInvalidBackfillBeforeCreate(t *testing.T) {
+	dir := t.TempDir()
+
+	assert.NoError(t, os.WriteFile(filepath.Join(dir, "database.yaml"), []byte(`---
+database:
+  name: foo
+`), 0600))
+
+	assert.NoError(t, os.WriteFile(filepath.Join(dir, "main.yaml"), []byte(`---
+pipelines:
+  - database.yaml
+  - backfill: database.yaml
+    from: "2025-02-03"
+    to: "2025-02-05 00:00:00"
+`), 0600))
+
+	var buf bytes.Buffer
+
+	load(filepath.Join(dir, "main.yaml"))
+
+	cmd := create.NewCommand()
+	cmd.SetOut(&buf)
+	cmd.SetErr(&buf)
+
+	err := cmd.Execute()
+
+	assert.EqualError(t, err, `backfill database.yaml: --from: invalid format "2025-02-03", use YYYY-MM-DD HH:MM:SS`)
+	assert.NotContains(t, buf.String(), "CREATE DATABASE")
+}
