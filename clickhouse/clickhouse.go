@@ -53,7 +53,7 @@ func (ch *ClickHouse) Connect() (err error) {
 		Compression: &clickhouse.Compression{
 			Method: clickhouse.CompressionLZ4,
 		},
-		ReadTimeout: time.Second * 28800,
+		ReadTimeout: 24 * time.Hour,
 		DialTimeout: time.Second * 30,
 		ClientInfo: clickhouse.ClientInfo{
 			Products: []struct {
