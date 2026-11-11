@@ -14,6 +14,22 @@ dacfy test pipeline.yaml --name malware_unique
 tests and prints their SQL without connecting to ClickHouse. A missing file,
 invalid test, query error, or failed assertion exits with a nonzero status.
 
+Test queries run without caches, so durations measure real reads and do not
+change because a query ran before. dacfy sends these settings with each test
+query:
+
+| Setting | Turns off |
+|---|---|
+| `use_query_cache = 0` | Stored query results. |
+| `use_query_condition_cache = 0` | Stored filter matches from earlier runs. |
+| `use_uncompressed_cache = 0` | Decompressed blocks kept in memory. |
+| `min_bytes_to_use_direct_io = 1` | The OS page cache; data is read with direct I/O. |
+
+The settings are not added to the SQL text, so `--sql` and `--dry-run` do not
+show them. A `SETTINGS` clause in a `query` test overrides them. The mark cache
+and the primary index stay in memory and cannot be turned off per query.
+`use_query_condition_cache` requires ClickHouse 25.3 or later.
+
 Use base table names in the manifest and pass `--suffix` to select a version:
 
 ```bash
