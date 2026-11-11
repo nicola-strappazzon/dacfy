@@ -15,6 +15,7 @@ var pl = pipelines.Instance()
 
 func NewCommand() *cobra.Command {
 	var name string
+	var noCache bool
 	cmd := &cobra.Command{
 		Use:     "test <pipeline.yaml>",
 		Short:   "Test transformations as defined in pipelines.",
@@ -26,14 +27,15 @@ func NewCommand() *cobra.Command {
 			return cobra.ExactArgs(1)(cmd, args)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return Run(name)
+			return Run(name, noCache)
 		},
 	}
 	cmd.Flags().StringVar(&name, "name", "", "Run only the test with this name.")
+	cmd.Flags().BoolVar(&noCache, "no-cache", false, "Run test queries without server caches.")
 
 	return cmd
 }
 
-func Run(name string) error {
-	return runner{out: os.Stdout, pipeline: pl, query: ch, name: name}.Run()
+func Run(name string, noCache bool) error {
+	return runner{out: os.Stdout, pipeline: pl, query: ch, name: name, noCache: noCache}.Run()
 }
