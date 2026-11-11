@@ -3,6 +3,7 @@ package pipelines_test
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/goccy/go-yaml"
 	"github.com/nicola-strappazzon/dacfy/pipelines"
@@ -148,4 +149,65 @@ func TestTestSQLSupportsNullKey(t *testing.T) {
 	statement, err := test.SQL("analytics")
 	require.NoError(t, err)
 	assert.Contains(t, statement, "FROM analytics.events WHERE ((source_id IS NULL))")
+}
+
+func TestQuerySQLFromYAML(t *testing.T) {
+	var item pipelines.Test
+	require.NoError(t, yaml.Unmarshal([]byte("name: lookup\ntable: events\nquery: |\n  SELECT id FROM {table} WHERE id IN (SELECT id FROM {table} LIMIT 1);\nrows: {gte: 1, lte: 10}\nmax_duration: 2s\n"), &item))
+	sql, err := item.SetSuffix("_v7").SQL("analytics")
+	require.NoError(t, err)
+	assert.Equal(t, "SELECT id FROM analytics.events_v7 WHERE id IN (SELECT id FROM analytics.events_v7 LIMIT 1)", sql)
+	assert.Equal(t, 2*time.Second, item.MaxDuration)
+	assert.Equal(t, "between [1, 10]", item.Rows.String())
+}
+
+func TestQueryValidate(t *testing.T) {
+	one, two := uint64(1), uint64(2)
+	query := "SELECT id FROM {table}"
+	cases := []struct {
+		name    string
+		test    pipelines.Test
+		message string
+	}{
+		{"only query", pipelines.Test{Query: query}, ""},
+		{"eq", pipelines.Test{Query: query, Rows: &pipelines.RowCount{EQ: &one}}, ""},
+		{"range", pipelines.Test{Query: query, Rows: &pipelines.RowCount{GTE: &one, LTE: &two}, MaxDuration: time.Second}, ""},
+		{"missing placeholder", pipelines.Test{Query: "SELECT 1"}, "test.query must read the test table with {table}"},
+		{"with where", pipelines.Test{Query: query, Where: "id = 1"}, "test.query cannot be combined with key, expected, unique, checks, where or final"},
+		{"with final", pipelines.Test{Query: query, Final: true}, "test.query cannot be combined with key, expected, unique, checks, where or final"},
+		{"with unique", pipelines.Test{Query: query, Unique: []string{"id"}}, "test.query cannot be combined with key, expected, unique, checks, where or final"},
+		{"empty rows", pipelines.Test{Query: query, Rows: &pipelines.RowCount{}}, "test.rows requires eq, gte or lte"},
+		{"eq and gte", pipelines.Test{Query: query, Rows: &pipelines.RowCount{EQ: &one, GTE: &one}}, "test.rows.eq cannot be combined with gte or lte"},
+		{"gte above lte", pipelines.Test{Query: query, Rows: &pipelines.RowCount{GTE: &two, LTE: &one}}, "test.rows.gte must be less than or equal to rows.lte"},
+		{"negative duration", pipelines.Test{Query: query, MaxDuration: -time.Second}, "test.max_duration must not be negative"},
+		{"rows without query", pipelines.Test{Unique: []string{"id"}, Rows: &pipelines.RowCount{EQ: &one}}, "test.rows and test.max_duration require test.query"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.test.Name, tc.test.Table = "lookup", "events"
+			err := tc.test.Validate()
+			if tc.message == "" {
+				assert.NoError(t, err)
+				return
+			}
+			assert.EqualError(t, err, tc.message)
+		})
+	}
+}
+
+func TestQueryRejectsInvalidYAMLValues(t *testing.T) {
+	for _, value := range []string{"max_duration: abc", "rows: {gte: -1}"} {
+		var item pipelines.Test
+		assert.Error(t, yaml.Unmarshal([]byte("query: SELECT 1\n"+value+"\n"), &item), value)
+	}
+}
+
+func TestRowCountMatch(t *testing.T) {
+	one, three := uint64(1), uint64(3)
+	assert.True(t, pipelines.RowCount{EQ: &three}.Match(3))
+	assert.False(t, pipelines.RowCount{EQ: &three}.Match(2))
+	assert.True(t, pipelines.RowCount{GTE: &one}.Match(1))
+	assert.False(t, pipelines.RowCount{GTE: &one}.Match(0))
+	assert.True(t, pipelines.RowCount{LTE: &three}.Match(0))
+	assert.False(t, pipelines.RowCount{GTE: &one, LTE: &three}.Match(4))
 }

@@ -23,7 +23,7 @@ is appended literally to each test's table name; it does not replace an existing
 version in the manifest or change the database name, field names, or `where`
 expression. Without `--suffix`, the table name is used as written.
 
-Each test uses one of three modes:
+Each test uses one of four modes:
 
 ```yaml
 database:
@@ -49,6 +49,15 @@ tests:
       - { field: score, not_null: true }
       - { field: score, between: [0, 100] }
       - { field: size, gt: 0 }
+
+  - name: malware_lookup
+    table: malware
+    query: |
+      SELECT sha256, score
+      FROM {table}
+      WHERE source = 'vendor_a' AND created_at >= '2026-01-01'
+    rows: { gte: 1, lte: 1000 }
+    max_duration: 2s
 ```
 
 - `key` + `expected` checks the selected rows and reports each key in YAML order.
@@ -61,11 +70,21 @@ tests:
   one rule: `not_null: true`, `between: [min, max]`, `gt`, `gte`, `lt`, or `lte`.
   `between` includes both bounds. Numeric rules skip nulls; add a separate
   `not_null` check when nulls must also fail. Bounds must be finite numbers.
+- `query` runs your own SQL and reports how many rows it returns and how long
+  it takes. The query must read the test table with `{table}`, which becomes
+  `database.table` plus `--suffix`. `rows` is optional and takes `eq`, or `gte`
+  and/or `lte`. `max_duration` is optional and uses Go duration syntax, such as
+  `500ms`, `2s` or `1m`. Without them, the test only reports the values. The
+  duration is the client wall time, from sending the query until the last row
+  is read, so it includes the network and changes with the server load. All
+  rows are read into memory; use `count()` or `LIMIT` for large results.
+  `query` cannot be combined with `where` or `final`; write them in the query.
 
-`final` is an optional boolean supported by all three modes and defaults to
-`false`. Set `final: true` to add `FINAL` after the table name, before filtering
-and grouping, applying the table engine's merge logic at query time. The engine
-must support `FINAL`; it is not detected automatically. For example:
+`final` is an optional boolean supported by the `expected`, `unique` and
+`checks` modes and defaults to `false`. Set `final: true` to add `FINAL` after
+the table name, before filtering and grouping, applying the table engine's merge
+logic at query time. The engine must support `FINAL`; it is not detected
+automatically. For example:
 
 ```yaml
 tests:
@@ -75,10 +94,11 @@ tests:
     unique: [sha256]
 ```
 
-`where` is an optional SQL expression supported by all three modes. Without a
-filter, `unique` and `checks` examine the whole table. With no matching rows these
-two modes pass; use `expected` when particular records must exist. Tests query
-existing data and do not create tables or fixtures. An empty string is not `NULL`.
+`where` is an optional SQL expression supported by the `expected`, `unique`
+and `checks` modes. Without a filter, `unique` and `checks` examine the whole
+table. With no matching rows these two modes pass; use `expected` when
+particular records must exist. Tests query existing data and do not create
+tables or fixtures. An empty string is not `NULL`.
 
 Example output:
 
@@ -88,6 +108,9 @@ Example output:
     score not_null: PASS
     score between [0, 100]: FAIL (3 rows)
     size > 0: PASS
+--> Test: malware_lookup
+    rows between [1, 1000]: PASS (37)
+    duration <= 2s: FAIL (2.31s)
 ```
 
 See [examples/tests.yaml](../examples/tests.yaml) for a complete manifest. Adjust its

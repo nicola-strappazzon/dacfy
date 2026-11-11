@@ -35,7 +35,8 @@ and backfill steps in order from one file.
 ## Test existing data
 
 See the [testing documentation](docs/tests.md) to validate transformations,
-uniqueness, and field rules against existing data.
+uniqueness, field rules, and query row counts and durations against existing
+data.
 
 ## Install on macOS
 

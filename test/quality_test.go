@@ -2,7 +2,9 @@ package test
 
 import (
 	"bytes"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/nicola-strappazzon/dacfy/clickhouse"
 	"github.com/nicola-strappazzon/dacfy/pipelines"
@@ -74,4 +76,45 @@ func TestUniquenessCompositeNullKey(t *testing.T) {
 	outcomes, err := item.Outcomes()
 	require.NoError(t, err)
 	assert.Equal(t, []outcome{{key: "source=vendor_a, id=<null>", detail: "found 2 rows"}}, outcomes)
+}
+
+func TestRunnerQueryReportsRowsAndDuration(t *testing.T) {
+	one, three := uint64(1), uint64(3)
+	cases := []struct {
+		name  string
+		item  pipelines.Test
+		sleep time.Duration
+		lines []string
+		err   string
+	}{
+		{"report only", pipelines.Test{}, 0, []string{"    rows: PASS (2)", "    duration: PASS ("}, ""},
+		{"rows pass", pipelines.Test{Rows: &pipelines.RowCount{GTE: &one, LTE: &three}}, 0, []string{"    rows between [1, 3]: PASS (2)"}, ""},
+		{"rows fail", pipelines.Test{Rows: &pipelines.RowCount{EQ: &three}}, 0, []string{"    rows = 3: FAIL (2)"}, `test "lookup" failed`},
+		{"duration pass", pipelines.Test{MaxDuration: time.Minute}, 0, []string{"    duration <= 1m0s: PASS ("}, ""},
+		{"duration fail", pipelines.Test{MaxDuration: time.Millisecond}, 20 * time.Millisecond, []string{"    duration <= 1ms: FAIL ("}, `test "lookup" failed`},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			item := tc.item
+			item.Name, item.Table, item.Query = "lookup", "events", "SELECT id FROM {table} WHERE id > 100"
+			pipeline := examplePipeline([]pipelines.Test{item})
+			pipeline.Config.Suffix = "_v7"
+			var out bytes.Buffer
+			r := runner{out: &out, pipeline: pipeline, query: queryFunc(func(sql string) (clickhouse.Result, error) {
+				assert.Equal(t, "SELECT id FROM analytics.events_v7 WHERE id > 100", sql)
+				time.Sleep(tc.sleep)
+				return exampleResult([]any{101}, []any{205}), nil
+			})}
+			err := r.Run()
+			if tc.err == "" {
+				require.NoError(t, err)
+			} else {
+				require.EqualError(t, err, tc.err)
+			}
+			assert.True(t, strings.HasPrefix(out.String(), "--> Test: lookup\n"))
+			for _, line := range tc.lines {
+				assert.Contains(t, out.String(), line)
+			}
+		})
+	}
 }
