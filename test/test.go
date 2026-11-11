@@ -14,7 +14,8 @@ var ch = clickhouse.Instance()
 var pl = pipelines.Instance()
 
 func NewCommand() *cobra.Command {
-	return &cobra.Command{
+	var name string
+	cmd := &cobra.Command{
 		Use:     "test <pipeline.yaml>",
 		Short:   "Test transformations as defined in pipelines.",
 		Example: "dacfy test foo.yaml",
@@ -25,11 +26,14 @@ func NewCommand() *cobra.Command {
 			return cobra.ExactArgs(1)(cmd, args)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return Run()
+			return Run(name)
 		},
 	}
+	cmd.Flags().StringVar(&name, "name", "", "Run only the test with this name.")
+
+	return cmd
 }
 
-func Run() error {
-	return runner{out: os.Stdout, pipeline: pl, query: ch}.Run()
+func Run(name string) error {
+	return runner{out: os.Stdout, pipeline: pl, query: ch, name: name}.Run()
 }
