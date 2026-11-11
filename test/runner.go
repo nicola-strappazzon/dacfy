@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/nicola-strappazzon/dacfy/clickhouse"
 	"github.com/nicola-strappazzon/dacfy/pipelines"
@@ -54,21 +55,25 @@ func (r runner) RunTest(item pipelines.Test) ([]outcome, error) {
 		return nil, nil
 	}
 
+	start := time.Now()
 	result, err := r.query.Query(statement)
+	elapsed := time.Since(start)
 	if err != nil {
 		fmt.Fprintln(r.out, "--> Test error:", item.Name.ToString())
 		return nil, fmt.Errorf("test %q: %w", item.Name.ToString(), err)
 	}
 
-	outcomes, err := r.evaluate(item, result)
+	outcomes, err := r.evaluate(item, result, elapsed)
 	if err != nil {
 		return nil, fmt.Errorf("test %q: %w", item.Name.ToString(), err)
 	}
 	return outcomes, nil
 }
 
-func (r runner) evaluate(item pipelines.Test, result clickhouse.Result) ([]outcome, error) {
+func (r runner) evaluate(item pipelines.Test, result clickhouse.Result, elapsed time.Duration) ([]outcome, error) {
 	switch {
+	case item.Query != "":
+		return (measurement{rows: item.Rows, maxDuration: item.MaxDuration, count: uint64(len(result.Rows)), elapsed: elapsed}).Outcomes()
 	case len(item.Unique) > 0:
 		return (uniqueness{fields: key(item.Unique), result: result}).Outcomes()
 	case len(item.Checks) > 0:

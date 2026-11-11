@@ -10,15 +10,21 @@ import (
 	"time"
 )
 
+// tablePlaceholder marks where a test query reads the test table.
+const tablePlaceholder = "{table}"
+
 type Test struct {
-	Checks   []Check          `yaml:"checks"`
-	Expected []map[string]any `yaml:"expected"`
-	Final    bool             `yaml:"final"`
-	Key      []string         `yaml:"key"`
-	Name     Name             `yaml:"name"`
-	Table    Name             `yaml:"table"`
-	Unique   []string         `yaml:"unique"`
-	Where    Where            `yaml:"where"`
+	Checks      []Check          `yaml:"checks"`
+	Expected    []map[string]any `yaml:"expected"`
+	Final       bool             `yaml:"final"`
+	Key         []string         `yaml:"key"`
+	MaxDuration time.Duration    `yaml:"max_duration"`
+	Name        Name             `yaml:"name"`
+	Query       string           `yaml:"query"`
+	Rows        *RowCount        `yaml:"rows"`
+	Table       Name             `yaml:"table"`
+	Unique      []string         `yaml:"unique"`
+	Where       Where            `yaml:"where"`
 }
 
 func (t Test) SetSuffix(in string) Test {
@@ -33,6 +39,13 @@ func (t Test) Validate() error {
 
 	if t.Table.IsNotValid() {
 		return fmt.Errorf("test.table %q is invalid; must start with a letter and contain only letters, digits or underscores (max 255 characters)", t.Table.ToString())
+	}
+
+	if t.Query != "" {
+		return t.validateQuery()
+	}
+	if t.Rows != nil || t.MaxDuration != 0 {
+		return fmt.Errorf("test.rows and test.max_duration require test.query")
 	}
 
 	if t.Unique != nil {
@@ -59,6 +72,24 @@ func (t Test) Validate() error {
 		return nil
 	}
 	return t.validateExpected()
+}
+
+func (t Test) validateQuery() error {
+	if t.Key != nil || t.Expected != nil || t.Unique != nil || t.Checks != nil || t.Where.IsNotEmpty() || t.Final {
+		return fmt.Errorf("test.query cannot be combined with key, expected, unique, checks, where or final")
+	}
+	if !stdstrings.Contains(t.Query, tablePlaceholder) {
+		return fmt.Errorf("test.query must read the test table with %s", tablePlaceholder)
+	}
+	if t.Rows != nil {
+		if err := t.Rows.Validate(); err != nil {
+			return fmt.Errorf("test.%w", err)
+		}
+	}
+	if t.MaxDuration < 0 {
+		return fmt.Errorf("test.max_duration must not be negative")
+	}
+	return nil
 }
 
 func (t Test) validateExpected() error {
@@ -133,6 +164,10 @@ func (t Test) SQL(database Name) (string, error) {
 	}
 
 	from := database.ToString() + "." + t.Table.ToString()
+	if t.Query != "" {
+		statement := stdstrings.TrimSuffix(stdstrings.TrimSpace(t.Query), ";")
+		return stdstrings.ReplaceAll(statement, tablePlaceholder, from), nil
+	}
 	if t.Final {
 		from += " FINAL"
 	}
