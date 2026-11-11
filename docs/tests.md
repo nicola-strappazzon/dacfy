@@ -6,11 +6,13 @@ Define `tests` in the same YAML as your pipeline, then run:
 dacfy test pipeline.yaml
 dacfy test pipeline.yaml --sql
 dacfy test pipeline.yaml --dry-run
+dacfy test pipeline.yaml --name malware_unique
 ```
 
-`--sql` prints the queries before executing them. `--dry-run` validates the tests
-and prints their SQL without connecting to ClickHouse. A missing file, invalid
-test, query error, or failed assertion exits with a nonzero status.
+`--name` runs only the test with that name; an unknown name is an error.
+`--sql` prints the queries before executing them. `--dry-run` validates the
+tests and prints their SQL without connecting to ClickHouse. A missing file,
+invalid test, query error, or failed assertion exits with a nonzero status.
 
 Use base table names in the manifest and pass `--suffix` to select a version:
 

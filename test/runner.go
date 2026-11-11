@@ -13,18 +13,20 @@ import (
 type runner struct {
 	out      io.Writer
 	pipeline *pipelines.Pipelines
+	name     string
 	query    interface {
 		Query(string) (clickhouse.Result, error)
 	}
 }
 
 func (r runner) Run() error {
-	if len(r.pipeline.Tests) == 0 {
-		return errors.New("no tests defined")
+	tests, err := r.selectedTests()
+	if err != nil {
+		return err
 	}
 
 	var errs []error
-	for _, item := range r.pipeline.Tests {
+	for _, item := range tests {
 		outcomes, err := r.RunTest(item)
 		if err != nil {
 			errs = append(errs, err)
@@ -40,6 +42,22 @@ func (r runner) Run() error {
 	}
 
 	return errors.Join(errs...)
+}
+
+// selectedTests returns all tests, or only the test named by --name.
+func (r runner) selectedTests() ([]pipelines.Test, error) {
+	if len(r.pipeline.Tests) == 0 {
+		return nil, errors.New("no tests defined")
+	}
+	if r.name == "" {
+		return r.pipeline.Tests, nil
+	}
+	for _, item := range r.pipeline.Tests {
+		if item.Name.ToString() == r.name {
+			return []pipelines.Test{item}, nil
+		}
+	}
+	return nil, fmt.Errorf("test %q not found", r.name)
 }
 
 func (r runner) RunTest(item pipelines.Test) ([]outcome, error) {

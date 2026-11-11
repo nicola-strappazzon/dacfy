@@ -158,3 +158,24 @@ func TestRunnerSuffixAppliesToAllModes(t *testing.T) {
 		})
 	}
 }
+
+func TestRunnerName(t *testing.T) {
+	other := pipelines.Test{Name: "unique_ids", Table: "daily_revenue", Unique: []string{"id"}}
+	var statements []string
+	r := runner{
+		out:      &bytes.Buffer{},
+		pipeline: examplePipeline([]pipelines.Test{exampleTest(), other}),
+		name:     "unique_ids",
+		query: queryFunc(func(in string) (clickhouse.Result, error) {
+			statements = append(statements, in)
+			return exampleResult(), nil
+		}),
+	}
+
+	assert.NoError(t, r.Run())
+	assert.Equal(t, []string{"SELECT id, count() FROM analytics.daily_revenue GROUP BY id HAVING count() > 1 ORDER BY id"}, statements)
+
+	r.name = "missing"
+	assert.EqualError(t, r.Run(), `test "missing" not found`)
+	assert.Len(t, statements, 1)
+}
