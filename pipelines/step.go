@@ -13,6 +13,7 @@ type BackfillOptions struct {
 	To       string `yaml:"to"`
 	Chunk    string `yaml:"chunk"`
 	Truncate bool   `yaml:"truncate"`
+	Reverse  bool   `yaml:"reverse"`
 }
 
 // Step is one entry of the pipelines list in a main file. A plain file name

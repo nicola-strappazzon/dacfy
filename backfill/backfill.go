@@ -3,6 +3,7 @@ package backfill
 import (
 	"fmt"
 	"io"
+	"slices"
 	"strconv"
 	"time"
 
@@ -31,6 +32,7 @@ func NewCommand() *cobra.Command {
   dacfy backfill foo.yaml
   dacfy backfill foo.yaml --from '2026-05-01 00:00:00' --to '2026-06-30 23:59:59'
   dacfy backfill foo.yaml --from '2026-05-01 00:00:00' --to '2026-06-30 23:59:59' --chunk 1d
+  dacfy backfill foo.yaml --from '2026-05-01 00:00:00' --to '2026-06-30 23:59:59' --chunk 1d --reverse
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return NewRunner(cmd.OutOrStdout(), options).Run()
@@ -41,6 +43,7 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.From, "from", "", "Start datetime for chunk mode (YYYY-MM-DD HH:MM:SS)")
 	cmd.Flags().StringVar(&options.To, "to", "", "End datetime for chunk mode (YYYY-MM-DD HH:MM:SS)")
 	cmd.Flags().StringVar(&options.Chunk, "chunk", defaultChunk, "Chunk size: Nh (hours), Nd (days), NM (months)")
+	cmd.Flags().BoolVar(&options.Reverse, "reverse", false, "Run chunks from the newest to the oldest")
 
 	return cmd
 }
@@ -64,6 +67,10 @@ func NewRunner(out io.Writer, options pipelines.BackfillOptions) Runner {
 // Validate checks the options without running the backfill.
 func (r Runner) Validate() error {
 	if !r.isChunked() {
+		if r.options.Reverse {
+			return fmt.Errorf("--reverse requires --from and --to")
+		}
+
 		return nil
 	}
 
@@ -225,20 +232,18 @@ func (r Runner) runChunked() (err error) {
 		}
 	}
 
-	total := countChunks(fromTime, toTime, n, unit)
-	i := 1
+	chunks := splitChunks(fromTime, toTime, n, unit)
+	if r.options.Reverse {
+		slices.Reverse(chunks)
+	}
 
-	for current := fromTime; current.Before(toTime); {
-		next := addChunk(current, n, unit)
-		if next.After(toTime) {
-			next = toTime
-		}
-
-		dateFrom := current.Format(dateFormat)
-		dateTo := next.Format(dateFormat)
+	for i, c := range chunks {
+		position := fmt.Sprintf("%d/%d", i+1, len(chunks))
+		dateFrom := c.start.Format(dateFormat)
+		dateTo := c.end.Format(dateFormat)
 
 		if !pl.Config.DryRun {
-			fmt.Fprintf(r.out, "--> Chunk %d/%d: %s => %s\n", i, total, dateFrom, dateTo)
+			fmt.Fprintf(r.out, "--> Chunk %s: %s => %s\n", position, dateFrom, dateTo)
 		}
 
 		q := pl.Backfill.Suffix(pl.Config.Suffix).DoChunk(dateFrom, dateTo)
@@ -249,13 +254,10 @@ func (r Runner) runChunked() (err error) {
 
 		if !pl.Config.DryRun {
 			if err := ch.Execute(q.SQL(), true); err != nil {
-				return fmt.Errorf("chunk %d/%d failed: %w", i, total, err)
+				return fmt.Errorf("chunk %s failed: %w", position, err)
 			}
 			fmt.Fprintln(r.out)
 		}
-
-		current = next
-		i++
 	}
 
 	return nil
@@ -296,10 +298,24 @@ func addChunk(t time.Time, n int, unit byte) time.Time {
 	}
 }
 
-func countChunks(from, to time.Time, n int, unit byte) int {
-	count := 0
-	for t := from; t.Before(to); t = addChunk(t, n, unit) {
-		count++
+// chunk is a [start, end) time range of a chunked backfill.
+type chunk struct {
+	start, end time.Time
+}
+
+// splitChunks splits [from, to) into chunks from the oldest to the newest.
+// The last chunk ends at to.
+func splitChunks(from, to time.Time, n int, unit byte) []chunk {
+	var chunks []chunk
+
+	for start := from; start.Before(to); start = addChunk(start, n, unit) {
+		end := addChunk(start, n, unit)
+		if end.After(to) {
+			end = to
+		}
+
+		chunks = append(chunks, chunk{start: start, end: end})
 	}
-	return count
+
+	return chunks
 }

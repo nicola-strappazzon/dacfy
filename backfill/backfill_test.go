@@ -1,7 +1,10 @@
 package backfill
 
 import (
+	"bytes"
 	"io"
+	"slices"
+	"strings"
 	"testing"
 
 	"github.com/nicola-strappazzon/dacfy/pipelines"
@@ -47,6 +50,8 @@ func TestRunnerValidate(t *testing.T) {
 		{name: "missing to", options: pipelines.BackfillOptions{From: "2026-01-01 00:00:00"}, err: "--from and --to must both be specified"},
 		{name: "invalid from", options: pipelines.BackfillOptions{From: "2026-01-01", To: "2026-01-02 00:00:00"}, err: `--from: invalid format "2026-01-01", use YYYY-MM-DD HH:MM:SS`},
 		{name: "from after to", options: pipelines.BackfillOptions{From: "2026-01-02 00:00:00", To: "2026-01-01 00:00:00"}, err: "--from must be before --to"},
+		{name: "reverse chunk range", options: pipelines.BackfillOptions{From: "2026-01-01 00:00:00", To: "2026-01-02 00:00:00", Reverse: true}},
+		{name: "reverse without range", options: pipelines.BackfillOptions{Reverse: true}, err: "--reverse requires --from and --to"},
 		{name: "invalid chunk", options: pipelines.BackfillOptions{From: "2026-01-01 00:00:00", To: "2026-01-02 00:00:00", Chunk: "1w"}, err: `invalid --chunk "1w", use Nh (hours), Nd (days) or NM (months)`},
 	}
 
@@ -61,4 +66,46 @@ func TestRunnerValidate(t *testing.T) {
 			assert.EqualError(t, err, tc.err)
 		})
 	}
+}
+
+func TestRunnerReverseRunsSameChunksInReverseOrder(t *testing.T) {
+	previousConfig := pl.Config
+	t.Cleanup(func() {
+		pl.Reset()
+		pl.Config = previousConfig
+		pl.SetParents()
+	})
+
+	pl.Reset()
+	pl.Config = pipelines.Config{DryRun: true, SQL: true}
+	pl.Database.Name = "analytics"
+	pl.Table.Name = "daily_revenue"
+	pl.Table.Query = "INSERT INTO daily_revenue SELECT day, sum(amount) FROM orders GROUP BY day"
+	pl.Table.Backfill.Where = "day >= '{date_from}' AND day < '{date_to}'"
+	pl.SetParents()
+
+	run := func(reverse bool) []string {
+		var out bytes.Buffer
+
+		runner := NewRunner(&out, pipelines.BackfillOptions{
+			From:    "2026-01-31 00:00:00",
+			To:      "2026-04-15 00:00:00",
+			Chunk:   "1M",
+			Reverse: reverse,
+		})
+
+		assert.NoError(t, runner.Run())
+
+		return strings.Split(strings.TrimSpace(out.String()), "\n")
+	}
+
+	forward := run(false)
+	reverse := run(true)
+
+	assert.Len(t, forward, 3)
+	assert.Contains(t, forward[0], "day >= '2026-01-31 00:00:00' AND day < '2026-03-03 00:00:00'")
+	assert.Contains(t, forward[2], "day >= '2026-04-03 00:00:00' AND day < '2026-04-15 00:00:00'")
+
+	slices.Reverse(forward)
+	assert.Equal(t, forward, reverse)
 }

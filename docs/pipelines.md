@@ -45,6 +45,7 @@ A `backfill` entry accepts the same options as the `backfill` command flags:
 | `to`       | `--to`       | End datetime for chunk mode (YYYY-MM-DD HH:MM:SS).   |
 | `chunk`    | `--chunk`    | Chunk size: Nh (hours), Nd (days), NM (months). Default `1d`. |
 | `truncate` | `--truncate` | Truncate the table before the backfill.              |
+| `reverse`  | `--reverse`  | Run chunks from the newest to the oldest. Requires `from` and `to`. |
 
 Without `from` and `to`, the step runs a full backfill.
 
