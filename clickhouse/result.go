@@ -37,6 +37,9 @@ func (r *Result) Read(rows rows) error {
 
 func scannedValue(destination any) any {
 	value := reflect.ValueOf(destination)
+	if !value.IsValid() {
+		return nil
+	}
 	for value.Kind() == reflect.Pointer {
 		if value.IsNil() {
 			return nil

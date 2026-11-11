@@ -47,7 +47,9 @@ func TestTestValidate(t *testing.T) {
 		{"inconsistent columns", pipelines.Test{Name: "test", Table: "events", Key: []string{"id"}, Expected: []map[string]any{{"id": 1}, {"id": 2, "name": "two"}}}, "test.expected rows must define the same columns"},
 		{"duplicate key", pipelines.Test{Name: "test", Table: "events", Key: []string{"id"}, Expected: []map[string]any{{"id": 1}, {"id": 1}}}, "test.expected contains duplicate key values"},
 		{"equivalent key", pipelines.Test{Name: "test", Table: "events", Key: []string{"id"}, Expected: []map[string]any{{"id": 1}, {"id": "1"}}}, "test.expected contains duplicate key values"},
-		{"unsupported value", pipelines.Test{Name: "test", Table: "events", Key: []string{"id"}, Expected: []map[string]any{{"id": []string{"one"}}}}, "test.expected column \"id\": unsupported value type []string"},
+		{"list in key", pipelines.Test{Name: "test", Table: "events", Key: []string{"id"}, Expected: []map[string]any{{"id": []string{"one"}}}}, "test.expected column \"id\": key columns need a single value, not a list"},
+		{"list in column", pipelines.Test{Name: "test", Table: "events", Key: []string{"id"}, Expected: []map[string]any{{"id": 1, "tags": []any{"a", nil, []any{1, 2}}, "empty": []any{}}}}, ""},
+		{"unsupported list item", pipelines.Test{Name: "test", Table: "events", Key: []string{"id"}, Expected: []map[string]any{{"id": 1, "tags": []any{map[string]any{"a": 1}}}}}, "test.expected column \"tags\": unsupported value type map[string]interface {}"},
 	}
 
 	for _, tc := range cases {
@@ -210,4 +212,19 @@ func TestRowCountMatch(t *testing.T) {
 	assert.False(t, pipelines.RowCount{GTE: &one}.Match(0))
 	assert.True(t, pipelines.RowCount{LTE: &three}.Match(0))
 	assert.False(t, pipelines.RowCount{GTE: &one, LTE: &three}.Match(4))
+}
+
+func TestExpectedListsFromYAML(t *testing.T) {
+	var item pipelines.Test
+	require.NoError(t, yaml.Unmarshal([]byte(`name: lists
+table: events
+key: [sha256]
+expected:
+  - sha256: abc
+    sources_author_id: ["aba4f35a-3e8e-4770-8550-30a931eec66b"]
+    sources_author_org_id: []
+`), &item))
+	sql, err := item.SQL("analytics")
+	require.NoError(t, err)
+	assert.Equal(t, "SELECT sha256, sources_author_id, sources_author_org_id FROM analytics.events WHERE sha256 IN ('abc')", sql)
 }

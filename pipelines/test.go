@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"reflect"
+	"slices"
 	"sort"
 	"strconv"
 	stdstrings "strings"
@@ -126,7 +127,7 @@ func (t Test) validateExpected() error {
 			if Name(column).IsNotValid() {
 				return fmt.Errorf("test.expected column %q is invalid; must start with a letter and contain only letters, digits or underscores (max 255 characters)", column)
 			}
-			if _, err := sqlLiteral(row[column]); err != nil {
+			if err := t.validateExpectedValue(column, row[column]); err != nil {
 				return fmt.Errorf("test.expected column %q: %w", column, err)
 			}
 		}
@@ -139,6 +140,41 @@ func (t Test) validateExpected() error {
 	}
 
 	return nil
+}
+
+// validateExpectedValue accepts lists only in columns that are not keys,
+// because key values are written into the WHERE clause.
+func (t Test) validateExpectedValue(column string, value any) error {
+	if isList(value) {
+		if slices.Contains(t.Key, column) {
+			return fmt.Errorf("key columns need a single value, not a list")
+		}
+		return validateList(value)
+	}
+	_, err := sqlLiteral(value)
+	return err
+}
+
+func validateList(value any) error {
+	list := reflect.ValueOf(value)
+	for i := range list.Len() {
+		item := list.Index(i).Interface()
+		if isList(item) {
+			if err := validateList(item); err != nil {
+				return err
+			}
+			continue
+		}
+		if _, err := sqlLiteral(item); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func isList(value any) bool {
+	kind := reflect.ValueOf(value).Kind()
+	return kind == reflect.Slice || kind == reflect.Array
 }
 
 func (t Test) validateFields(fields []string) error {
