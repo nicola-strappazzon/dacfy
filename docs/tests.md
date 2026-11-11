@@ -82,6 +82,9 @@ tests:
   Missing rows, repeated keys in the result, and different values fail. Expected
   rows must have the same columns and distinct keys. Values compare by text,
   allowing equivalent numeric types; `NULL` remains distinct from literal text.
+  Columns that are not keys accept YAML lists for `Array` columns, including
+  empty and nested lists. Lists compare item by item with the same rules. Key
+  columns need single values.
 - `unique` checks that each combination of the listed fields occurs at most once.
   Each duplicate group is reported with its row count. Nulls participate in grouping.
 - `checks` counts violations for each rule in a single query. Each entry defines
@@ -97,6 +100,16 @@ tests:
   is read, so it includes the network and changes with the server load. All
   rows are read into memory; use `count()` or `LIMIT` for large results.
   `query` cannot be combined with `where` or `final`; write them in the query.
+
+For example, with `Array(String)` columns:
+
+```yaml
+    key: [sha256]
+    expected:
+      - sha256: 0d6244a5e1c2
+        sources_author_id: ["aba4f35a-3e8e-4770-8550-30a931eec66b"]
+        sources_author_org_id: []
+```
 
 `final` is an optional boolean supported by the `expected`, `unique` and
 `checks` modes and defaults to `false`. Set `final: true` to add `FINAL` after
