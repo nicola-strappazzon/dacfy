@@ -146,12 +146,34 @@ func run(cmd *cobra.Command, created map[string]bool) (err error) {
 			Statement: pl.Table.SetSuffix(pl.Config.Suffix).Create().SQL(),
 			Message:   fmt.Sprintf("Create table: %s", pl.Table.SetSuffix(pl.Config.Suffix).Name.ToString()),
 		},
+	}
+
+	// Indexes are added right after their table, before the view and any
+	// backfill fill it, so existing parts never need MATERIALIZE INDEX.
+	tableExists := !pl.Config.DryRun && ch.TableExists(pl.Database.Name.ToString(), pl.Table.SetSuffix(pl.Config.Suffix).Name.ToString())
+	for i, statement := range pl.Table.SetSuffix(pl.Config.Suffix).AddIndexes() {
+		queries = append(queries, struct {
+			Message   string
+			Statement string
+			Continue  bool
+		}{
+			Continue:  tableExists,
+			Statement: statement,
+			Message:   fmt.Sprintf("Add index: %s", pl.Table.Indexes[i].Name.ToString()),
+		})
+	}
+
+	queries = append(queries, []struct {
+		Message   string
+		Statement string
+		Continue  bool
+	}{
 		{
 			Continue:  !pl.Config.DryRun && ch.TableExists(pl.Database.Name.ToString(), pl.View.SetSuffix(pl.Config.Suffix).Name.ToString()),
 			Statement: pl.View.SetSuffix(pl.Config.Suffix).Create().SQL(),
 			Message:   fmt.Sprintf("Create view: %s", pl.View.SetSuffix(pl.Config.Suffix).Name.ToString()),
 		},
-	}
+	}...)
 
 	if pl.User.IsNotEmpty() {
 		queries = append(queries, struct {

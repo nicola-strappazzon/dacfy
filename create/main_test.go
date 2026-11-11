@@ -410,3 +410,73 @@ pipelines:
 	assert.EqualError(t, err, `backfill database.yaml: --from: invalid format "2025-02-03", use YYYY-MM-DD HH:MM:SS`)
 	assert.NotContains(t, buf.String(), "CREATE DATABASE")
 }
+
+func TestCommand_TableIndexes(t *testing.T) {
+	pipe := filepath.Join(t.TempDir(), "search.yaml")
+	assert.NoError(t, os.WriteFile(pipe, []byte(`---
+database:
+  name: malware_search
+table:
+  name: ds_search_file
+  engine: MergeTree
+  order_by: [updated_at, sha256]
+  columns:
+    - { name: updated_at, type: DateTime }
+    - { name: sha256, type: String }
+    - { name: search_file, type: String }
+  indexes:
+    - { name: idx_search_file, expression: search_file, type: "text(tokenizer = ngrams(3))", granularity: 1 }
+    - { name: idx_sha256_bf, expression: sha256, type: bloom_filter(0.01), granularity: 1 }
+view:
+  name: mv_search_file
+  to: ds_search_file
+  materialized: true
+  query: SELECT updated_at, sha256, search_file FROM malware_search.source
+`), 0600))
+
+	var buf bytes.Buffer
+
+	load(pipe)
+	pipelines.Instance().Config.Suffix = "_v2"
+	defer func() { pipelines.Instance().Config.Suffix = "" }()
+
+	cmd := create.NewCommand()
+	cmd.SetOut(&buf)
+	cmd.SetErr(&buf)
+
+	err := cmd.Execute()
+	out := buf.String()
+
+	assert.NoError(t, err)
+	table := strings.Index(out, "CREATE TABLE IF NOT EXISTS malware_search.ds_search_file_v2 ")
+	first := strings.Index(out, "ALTER TABLE malware_search.ds_search_file_v2 ADD INDEX IF NOT EXISTS idx_search_file search_file TYPE text(tokenizer = ngrams(3)) GRANULARITY 1;")
+	second := strings.Index(out, "ALTER TABLE malware_search.ds_search_file_v2 ADD INDEX IF NOT EXISTS idx_sha256_bf sha256 TYPE bloom_filter(0.01) GRANULARITY 1;")
+	view := strings.Index(out, "CREATE MATERIALIZED VIEW")
+	assert.True(t, table >= 0 && first > table && second > first && view > second, "indexes must follow the table and precede the view:\n%s", out)
+}
+
+func TestCommand_TableIndexesRejectInvalid(t *testing.T) {
+	pipe := filepath.Join(t.TempDir(), "search.yaml")
+	assert.NoError(t, os.WriteFile(pipe, []byte(`---
+database:
+  name: malware_search
+table:
+  name: ds_search_file
+  engine: MergeTree
+  columns:
+    - { name: sha256, type: String }
+  indexes:
+    - { name: idx_sha256, expression: sha256 }
+`), 0600))
+
+	var buf bytes.Buffer
+
+	load(pipe)
+
+	cmd := create.NewCommand()
+	cmd.SetOut(&buf)
+	cmd.SetErr(&buf)
+
+	assert.EqualError(t, cmd.Execute(), `table "ds_search_file": index.type is required for index "idx_sha256"`)
+	assert.NotContains(t, buf.String(), "CREATE TABLE")
+}
