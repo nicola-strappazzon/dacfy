@@ -187,15 +187,28 @@ func (s *settingsRecorder) Query(_ string, settings clickhouse.Settings) (clickh
 	return exampleResult([]any{101, 25}, []any{205, 7}), nil
 }
 
-func TestRunnerSendsNoCacheSettings(t *testing.T) {
-	recorder := &settingsRecorder{}
-	r := runner{out: &bytes.Buffer{}, pipeline: examplePipeline([]pipelines.Test{exampleTest()}), query: recorder}
-
-	assert.NoError(t, r.Run())
-	assert.Equal(t, []clickhouse.Settings{{
+func TestRunnerCacheSettings(t *testing.T) {
+	noCache := clickhouse.Settings{
 		"use_query_cache":            0,
 		"use_query_condition_cache":  0,
 		"use_uncompressed_cache":     0,
 		"min_bytes_to_use_direct_io": 1,
-	}}, recorder.settings)
+	}
+	cases := []struct {
+		name     string
+		noCache  bool
+		settings clickhouse.Settings
+	}{
+		{"default", false, nil},
+		{"no cache", true, noCache},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			recorder := &settingsRecorder{}
+			r := runner{out: &bytes.Buffer{}, pipeline: examplePipeline([]pipelines.Test{exampleTest()}), query: recorder, noCache: tc.noCache}
+
+			assert.NoError(t, r.Run())
+			assert.Equal(t, []clickhouse.Settings{tc.settings}, recorder.settings)
+		})
+	}
 }

@@ -7,6 +7,7 @@ dacfy test pipeline.yaml
 dacfy test pipeline.yaml --sql
 dacfy test pipeline.yaml --dry-run
 dacfy test pipeline.yaml --name malware_unique
+dacfy test pipeline.yaml --no-cache
 ```
 
 `--name` runs only the test with that name; an unknown name is an error.
@@ -14,8 +15,9 @@ dacfy test pipeline.yaml --name malware_unique
 tests and prints their SQL without connecting to ClickHouse. A missing file,
 invalid test, query error, or failed assertion exits with a nonzero status.
 
-Test queries run without caches, so durations measure real reads and do not
-change because a query ran before. dacfy sends these settings with each test
+By default, test queries use the normal server caches. With `--no-cache`, test
+queries run without caches, so durations measure real reads and do not change
+because a query ran before. dacfy then sends these settings with each test
 query:
 
 | Setting | Turns off |
