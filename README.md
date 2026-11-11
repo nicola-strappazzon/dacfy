@@ -32,6 +32,11 @@ dacfy ping
 See the [main pipelines file documentation](docs/pipelines.md) to run create
 and backfill steps in order from one file.
 
+## Table indexes
+
+See the [table indexes documentation](docs/indexes.md) to create data skipping
+indexes together with a table.
+
 ## Test existing data
 
 See the [testing documentation](docs/tests.md) to validate transformations,

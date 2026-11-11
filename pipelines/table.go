@@ -33,6 +33,7 @@ type Table struct {
 	Delete      bool            `yaml:"delete"`
 	Description string          `yaml:"description"`
 	Engine      Engine          `yaml:"engine"`
+	Indexes     []Index         `yaml:"indexes"`
 	MongoDB     MongoDB         `yaml:"mongodb"`
 	Name        Name            `yaml:"name"`
 	OrderBy     columns.Array   `yaml:"order_by"`
@@ -140,6 +141,16 @@ func (t Table) Create() Table {
 	return t
 }
 
+// AddIndexes returns one statement per index, in manifest order.
+func (t Table) AddIndexes() []string {
+	table := t.Parent.Database.Name.ToString() + "." + t.Name.ToString()
+	statements := make([]string, len(t.Indexes))
+	for i, index := range t.Indexes {
+		statements[i] = index.SQL(table)
+	}
+	return statements
+}
+
 func (t Table) Drop() Table {
 	if t.Parent.Database.Name.IsEmpty() {
 		return t
@@ -241,5 +252,19 @@ func (t Table) Validate() error {
 		}
 	}
 
+	return t.validateIndexes()
+}
+
+func (t Table) validateIndexes() error {
+	seen := make(map[Name]bool, len(t.Indexes))
+	for _, index := range t.Indexes {
+		if err := index.Validate(); err != nil {
+			return fmt.Errorf("table %q: %w", t.Name.ToString(), err)
+		}
+		if seen[index.Name] {
+			return fmt.Errorf("table %q: index.name %q is repeated", t.Name.ToString(), index.Name.ToString())
+		}
+		seen[index.Name] = true
+	}
 	return nil
 }
