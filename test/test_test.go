@@ -46,7 +46,7 @@ func exampleResult(rows ...[]any) clickhouse.Result {
 
 type queryFunc func(string) (clickhouse.Result, error)
 
-func (f queryFunc) Query(statement string) (clickhouse.Result, error) {
+func (f queryFunc) Query(statement string, _ clickhouse.Settings) (clickhouse.Result, error) {
 	return f(statement)
 }
 
@@ -178,4 +178,24 @@ func TestRunnerName(t *testing.T) {
 	r.name = "missing"
 	assert.EqualError(t, r.Run(), `test "missing" not found`)
 	assert.Len(t, statements, 1)
+}
+
+type settingsRecorder struct{ settings []clickhouse.Settings }
+
+func (s *settingsRecorder) Query(_ string, settings clickhouse.Settings) (clickhouse.Result, error) {
+	s.settings = append(s.settings, settings)
+	return exampleResult([]any{101, 25}, []any{205, 7}), nil
+}
+
+func TestRunnerSendsNoCacheSettings(t *testing.T) {
+	recorder := &settingsRecorder{}
+	r := runner{out: &bytes.Buffer{}, pipeline: examplePipeline([]pipelines.Test{exampleTest()}), query: recorder}
+
+	assert.NoError(t, r.Run())
+	assert.Equal(t, []clickhouse.Settings{{
+		"use_query_cache":            0,
+		"use_query_condition_cache":  0,
+		"use_uncompressed_cache":     0,
+		"min_bytes_to_use_direct_io": 1,
+	}}, recorder.settings)
 }

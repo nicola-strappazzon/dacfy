@@ -15,7 +15,7 @@ type runner struct {
 	pipeline *pipelines.Pipelines
 	name     string
 	query    interface {
-		Query(string) (clickhouse.Result, error)
+		Query(string, clickhouse.Settings) (clickhouse.Result, error)
 	}
 }
 
@@ -42,6 +42,18 @@ func (r runner) Run() error {
 	}
 
 	return errors.Join(errs...)
+}
+
+// noCacheSettings turns off the caches that make a repeated test query faster
+// than its first run, so durations measure real reads. A SETTINGS clause in the
+// test query overrides them.
+func noCacheSettings() clickhouse.Settings {
+	return clickhouse.Settings{
+		"use_query_cache":            0,
+		"use_query_condition_cache":  0,
+		"use_uncompressed_cache":     0,
+		"min_bytes_to_use_direct_io": 1,
+	}
 }
 
 // selectedTests returns all tests, or only the test named by --name.
@@ -74,7 +86,7 @@ func (r runner) RunTest(item pipelines.Test) ([]outcome, error) {
 	}
 
 	start := time.Now()
-	result, err := r.query.Query(statement)
+	result, err := r.query.Query(statement, noCacheSettings())
 	elapsed := time.Since(start)
 	if err != nil {
 		fmt.Fprintln(r.out, "--> Test error:", item.Name.ToString())
