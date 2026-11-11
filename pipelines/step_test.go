@@ -29,6 +29,7 @@ func TestStep_Unmarshal(t *testing.T) {
     to: "2025-02-05 00:00:00"
     chunk: 1d
     truncate: true
+    reverse: true
   - backfill: view.yaml
 `)
 	require.NoError(t, err)
@@ -43,6 +44,7 @@ func TestStep_Unmarshal(t *testing.T) {
 				To:       "2025-02-05 00:00:00",
 				Chunk:    "1d",
 				Truncate: true,
+				Reverse:  true,
 			},
 		},
 		{File: "view.yaml", Backfill: true},
