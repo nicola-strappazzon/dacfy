@@ -56,8 +56,15 @@ func validateCron(spec string) error {
 	if spec == "" {
 		return nil
 	}
-	if _, err := cron.ParseStandard(spec); err != nil {
-		return fmt.Errorf("invalid --cron %q: %w", spec, err)
+	_, err := parseCron(spec)
+	return err
+}
+
+// parseCron reads a standard cron expression.
+func parseCron(spec string) (cron.Schedule, error) {
+	schedule, err := cron.ParseStandard(spec)
+	if err != nil {
+		return nil, fmt.Errorf("invalid --cron %q: %w", spec, err)
 	}
-	return nil
+	return schedule, nil
 }

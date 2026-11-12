@@ -25,9 +25,7 @@ func (r runner) Run(name string) error {
 	if !r.pipeline.Config.DryRun {
 		fmt.Fprintf(r.out, "--> Running task: %s\n", name)
 	}
-	if r.pipeline.Config.SQL {
-		fmt.Fprintln(r.out, statement+";")
-	}
+	r.printSQL(statement)
 	if r.pipeline.Config.DryRun {
 		return nil
 	}
@@ -41,6 +39,13 @@ func (r runner) statement(name string) (string, error) {
 		return "", err
 	}
 	return item.SQL(r.table())
+}
+
+// printSQL prints the statement when --sql is set.
+func (r runner) printSQL(statement string) {
+	if r.pipeline.Config.SQL {
+		fmt.Fprintln(r.out, statement+";")
+	}
 }
 
 // exec runs the statement and ends the progress line.

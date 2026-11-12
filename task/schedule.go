@@ -18,18 +18,19 @@ func (r runner) Schedule(ctx context.Context, name, spec string) error {
 		return err
 	}
 
+	schedule, err := parseCron(spec)
+	if err != nil {
+		return err
+	}
+
 	c := cron.New(cron.WithChain(cron.SkipIfStillRunning(cron.DiscardLogger)))
-	if _, err := c.AddFunc(spec, func() {
+	c.Schedule(schedule, cron.FuncJob(func() {
 		if err := r.exec(statement); err != nil {
 			fmt.Fprintf(r.out, "--> Task %s failed: %v\n", name, err)
 		}
-	}); err != nil {
-		return fmt.Errorf("invalid --cron %q: %w", spec, err)
-	}
+	}))
 
-	if r.pipeline.Config.SQL {
-		fmt.Fprintln(r.out, statement+";")
-	}
+	r.printSQL(statement)
 	fmt.Fprintf(r.out, "--> Task %s scheduled with cron %q, press Ctrl+C to stop.\n", name, spec)
 	c.Start()
 	<-ctx.Done()
