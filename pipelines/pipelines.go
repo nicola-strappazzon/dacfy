@@ -26,6 +26,7 @@ type Pipelines struct {
 	Description string   `yaml:"description"`
 	Pipelines   []Step   `yaml:"pipelines"`
 	Table       Table    `yaml:"table"`
+	Tasks       Tasks    `yaml:"tasks"`
 	Tests       []Test   `yaml:"tests"`
 	User        User     `yaml:"user"`
 	View        View     `yaml:"view"`
@@ -37,6 +38,7 @@ func (p *Pipelines) Reset() {
 	p.Description = ""
 	p.Pipelines = nil
 	p.Table = Table{}
+	p.Tasks = nil
 	p.Tests = nil
 	p.User = User{}
 	p.View = View{}
