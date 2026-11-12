@@ -105,13 +105,7 @@ func (ch *ClickHouse) ExecuteWitchLogger(in string) error {
 
 	ctx := clickhouse.Context(context.Background(),
 		clickhouse.WithQueryID(ch.QueryID),
-		clickhouse.WithProgress(func(p *clickhouse.Progress) {
-			ch.Progress.SetReadRows(p.Rows)
-			ch.Progress.SetReadBytes(p.Bytes)
-			ch.Progress.SetTotalRows(p.TotalRows)
-
-			ch.WriteProcess()
-		}),
+		clickhouse.WithProgress(ch.onProgress),
 	)
 
 	if err := ch.Connection.Exec(ctx, in); err != nil {
@@ -123,6 +117,15 @@ func (ch *ClickHouse) ExecuteWitchLogger(in string) error {
 	completeProgress()
 
 	return nil
+}
+
+// onProgress updates and writes the progress before the callback returns,
+// so no write remains pending when the query finishes.
+func (ch *ClickHouse) onProgress(p *clickhouse.Progress) {
+	ch.Progress.SetReadRows(p.Rows)
+	ch.Progress.SetReadBytes(p.Bytes)
+	ch.Progress.SetTotalRows(p.TotalRows)
+	ch.WriteProcess()
 }
 
 func (ch *ClickHouse) WriteProcess() {
