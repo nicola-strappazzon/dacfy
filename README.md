@@ -40,8 +40,9 @@ indexes together with a table.
 ## Tasks
 
 See the [tasks documentation](docs/tasks.md) to keep named queries in a
-manifest, list them with `dacfy tasks foo.yaml`, and run one with
-`dacfy task sync foo.yaml`.
+manifest, list them with `dacfy tasks foo.yaml`, run one with
+`dacfy task sync foo.yaml`, or keep one running on a cron schedule with
+`--cron "*/5 * * * *"`.
 
 ## Test existing data
 
