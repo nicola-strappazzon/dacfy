@@ -39,7 +39,7 @@ func TestRunExecutesOnlyTheNamedTask(t *testing.T) {
 	require.NoError(t, runner{out: &out, pipeline: pipeline, execute: executor}.Run("sync"))
 
 	assert.Equal(t, []string{"SYSTEM SYNC REPLICA analytics.events_v2"}, executor.statements)
-	assert.Equal(t, "--> Running task: sync\nSYSTEM SYNC REPLICA analytics.events_v2;\n", out.String())
+	assert.Equal(t, "--> Running task: sync\nSYSTEM SYNC REPLICA analytics.events_v2;\n\n", out.String())
 }
 
 func TestRunDryRunDoesNotExecute(t *testing.T) {
