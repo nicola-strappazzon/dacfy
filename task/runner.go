@@ -35,7 +35,11 @@ func (r runner) Run(name string) error {
 	if r.pipeline.Config.DryRun {
 		return nil
 	}
-	return r.execute.Execute(statement, true)
+	if err := r.execute.Execute(statement, true); err != nil {
+		return err
+	}
+	fmt.Fprintln(r.out)
+	return nil
 }
 
 // table returns the manifest table as database.table, with the suffix, or an
