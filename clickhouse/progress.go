@@ -35,8 +35,10 @@ type Progress struct {
 
 var loggerProgress LoggerProgress = nil
 
+// StartNow starts the progress of a new query: it sets the start time and
+// resets the counters of the previous query.
 func (p *Progress) StartNow() {
-	p.Start = time.Now()
+	*p = Progress{Start: time.Now()}
 }
 
 func (p *Progress) SetReadRows(in uint64) {
