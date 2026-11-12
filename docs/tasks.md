@@ -11,8 +11,10 @@ table:
   name: events
 tasks:
   - name: sync
+    description: Wait for the replica to get all parts.
     query: SYSTEM SYNC REPLICA {table}
   - name: optimize
+    description: Merge all parts.
     query: |
       OPTIMIZE TABLE {table} FINAL
 ```
@@ -20,6 +22,7 @@ tasks:
 | Field | Required | Description |
 |---|---|---|
 | `name` | Yes | Task name. Must be unique in the manifest. It starts with a letter and contains letters, digits, `_` or `-`. |
+| `description` | No | Short text that `dacfy tasks` shows. |
 | `query` | Yes | One SQL statement. A final `;` is removed. |
 
 `{table}` is optional. dacfy replaces it with `<database>.<table>` from the
@@ -32,12 +35,13 @@ manifest, with `--suffix` applied. A query that uses `{table}` needs
 dacfy tasks foo.yaml
 ```
 
-It prints one line per task, in manifest order, with the name and the query.
+It prints one line per task, in manifest order, with the name and the
+description.
 It does not connect to ClickHouse.
 
 ```text
-sync      SYSTEM SYNC REPLICA {table}
-optimize  OPTIMIZE TABLE {table} FINAL
+sync      Wait for the replica to get all parts.
+optimize  Merge all parts.
 ```
 
 ## Run a task

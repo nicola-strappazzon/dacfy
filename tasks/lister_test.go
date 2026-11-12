@@ -12,13 +12,13 @@ import (
 func TestList(t *testing.T) {
 	var out bytes.Buffer
 	items := pipelines.Tasks{
-		{Name: "sync", Query: "SYSTEM SYNC REPLICA {table}"},
-		{Name: "optimize", Query: "OPTIMIZE TABLE {table}\n  FINAL"},
+		{Name: "sync", Description: "Wait for the replica to get all parts.", Query: "SYSTEM SYNC REPLICA {table}"},
+		{Name: "optimize", Description: "Merge all parts.", Query: "OPTIMIZE TABLE {table} FINAL"},
 	}
 
 	require.NoError(t, lister{out: &out, tasks: items}.List())
 
-	assert.Equal(t, "sync      SYSTEM SYNC REPLICA {table}\noptimize  OPTIMIZE TABLE {table} FINAL\n", out.String())
+	assert.Equal(t, "sync      Wait for the replica to get all parts.\noptimize  Merge all parts.\n", out.String())
 }
 
 func TestListWithoutTasks(t *testing.T) {

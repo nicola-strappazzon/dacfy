@@ -13,8 +13,9 @@ var taskName = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_-]{1,254}$`)
 
 // Task is a named query that the task command runs on demand.
 type Task struct {
-	Name  Name  `yaml:"name"`
-	Query Query `yaml:"query"`
+	Description string `yaml:"description"`
+	Name        Name   `yaml:"name"`
+	Query       Query  `yaml:"query"`
 }
 
 func (t Task) Validate() error {
