@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/nicola-strappazzon/dacfy/pipelines"
@@ -103,18 +104,17 @@ func (ch *ClickHouse) ExecuteWitchLogger(in string) error {
 	ch.Progress.StartNow()
 	ch.NewQueryID()
 
+	var writes sync.WaitGroup
 	ctx := clickhouse.Context(context.Background(),
 		clickhouse.WithQueryID(ch.QueryID),
-		clickhouse.WithProgress(func(p *clickhouse.Progress) {
-			ch.Progress.SetReadRows(p.Rows)
-			ch.Progress.SetReadBytes(p.Bytes)
-			ch.Progress.SetTotalRows(p.TotalRows)
-
-			go ch.WriteProcess()
-		}),
+		clickhouse.WithProgress(ch.onProgress(&writes)),
 	)
 
-	if err := ch.Connection.Exec(ctx, in); err != nil {
+	err := ch.Connection.Exec(ctx, in)
+	// Wait for the background writes, so that none of them writes the line
+	// again after it ends.
+	writes.Wait()
+	if err != nil {
 		finishProgress()
 		return err
 	}
@@ -123,6 +123,22 @@ func (ch *ClickHouse) ExecuteWitchLogger(in string) error {
 	completeProgress()
 
 	return nil
+}
+
+// onProgress returns the progress callback of one query. It adds the server
+// progress and writes the line in the background; writes tracks those writes.
+func (ch *ClickHouse) onProgress(writes *sync.WaitGroup) func(*clickhouse.Progress) {
+	return func(p *clickhouse.Progress) {
+		ch.Progress.SetReadRows(p.Rows)
+		ch.Progress.SetReadBytes(p.Bytes)
+		ch.Progress.SetTotalRows(p.TotalRows)
+
+		writes.Add(1)
+		go func() {
+			defer writes.Done()
+			ch.WriteProcess()
+		}()
+	}
 }
 
 func (ch *ClickHouse) WriteProcess() {

@@ -18,6 +18,18 @@ func TestStartNowSetsStart(t *testing.T) {
 	assert.True(t, p.Start.After(before))
 }
 
+func TestStartNowResetsCounters(t *testing.T) {
+	p := clickhouse.Progress{ReadRows: 44, ReadBytes: 1024, TotalRows: 50, Memory: 8, PeakMemory: 9, CPU: 1.5}
+	p.StartNow()
+	p.SetReadRows(10)
+	assert.EqualValues(t, 10, p.ReadRows)
+	assert.Zero(t, p.ReadBytes)
+	assert.Zero(t, p.TotalRows)
+	assert.Zero(t, p.Memory)
+	assert.Zero(t, p.PeakMemory)
+	assert.Zero(t, p.CPU)
+}
+
 func TestSetReadRowsAndBytes(t *testing.T) {
 	var p clickhouse.Progress
 	p.SetReadRows(10)
