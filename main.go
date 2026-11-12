@@ -13,6 +13,8 @@ import (
 	"github.com/nicola-strappazzon/dacfy/progress"
 	"github.com/nicola-strappazzon/dacfy/query"
 	"github.com/nicola-strappazzon/dacfy/swap"
+	"github.com/nicola-strappazzon/dacfy/task"
+	"github.com/nicola-strappazzon/dacfy/tasks"
 	"github.com/nicola-strappazzon/dacfy/test"
 	"github.com/nicola-strappazzon/dacfy/version"
 
@@ -49,7 +51,7 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 		},
 		PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
 			switch cmd.Name() {
-			case "dacfy", "help", "ping", "version":
+			case "dacfy", "help", "ping", "tasks", "version":
 				return nil
 			}
 			if pl.Config.DryRun {
@@ -64,7 +66,7 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 			}
 
 			if pl.Config.Pipe == "" && len(args) > 0 {
-				pl.Config.Pipe = args[0]
+				pl.Config.Pipe = args[len(args)-1]
 
 				if err = pl.Load(); err != nil {
 					return err
@@ -72,7 +74,7 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 
 				pl.SetParents()
 
-				if cmd.Name() == "test" && pl.Config.DryRun {
+				if cmd.Name() == "test" && pl.Config.DryRun || cmd.Name() == "tasks" {
 					return nil
 				}
 				return ch.Connect()
@@ -103,6 +105,8 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 	rootCmd.AddCommand(ping.NewCommand())
 	rootCmd.AddCommand(query.NewCommand())
 	rootCmd.AddCommand(swap.NewCommand())
+	rootCmd.AddCommand(task.NewCommand())
+	rootCmd.AddCommand(tasks.NewCommand())
 	rootCmd.AddCommand(test.NewCommand())
 	rootCmd.AddCommand(version.NewCommand())
 

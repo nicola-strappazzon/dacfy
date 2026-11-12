@@ -37,6 +37,12 @@ and backfill steps in order from one file.
 See the [table indexes documentation](docs/indexes.md) to create data skipping
 indexes together with a table.
 
+## Tasks
+
+See the [tasks documentation](docs/tasks.md) to keep named queries in a
+manifest, list them with `dacfy tasks foo.yaml`, and run one with
+`dacfy task sync foo.yaml`.
+
 ## Test existing data
 
 See the [testing documentation](docs/tests.md) to validate transformations,
