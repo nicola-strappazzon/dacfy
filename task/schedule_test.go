@@ -70,6 +70,7 @@ func TestScheduleKeepsRunningAfterAFailedRun(t *testing.T) {
 	require.NoError(t, <-done)
 	assert.Contains(t, out.String(), "--> Task sync scheduled with cron \"@every 1s\", press Ctrl+C to stop.\n")
 	assert.Contains(t, out.String(), "--> Task sync failed: table is read only\n")
+	assert.NotContains(t, out.String(), "--> Running task")
 }
 
 func TestScheduleRejectsInvalidInput(t *testing.T) {

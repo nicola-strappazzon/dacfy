@@ -17,17 +17,13 @@ type runner struct {
 
 // Run runs the task with this name.
 func (r runner) Run(name string) error {
-	item, err := r.pipeline.Tasks.Find(name)
-	if err != nil {
-		return err
-	}
-	statement, err := item.SQL(r.table())
+	statement, err := r.statement(name)
 	if err != nil {
 		return err
 	}
 
 	if !r.pipeline.Config.DryRun {
-		fmt.Fprintf(r.out, "--> Running task: %s\n", item.Name.ToString())
+		fmt.Fprintf(r.out, "--> Running task: %s\n", name)
 	}
 	if r.pipeline.Config.SQL {
 		fmt.Fprintln(r.out, statement+";")
@@ -35,6 +31,20 @@ func (r runner) Run(name string) error {
 	if r.pipeline.Config.DryRun {
 		return nil
 	}
+	return r.exec(statement)
+}
+
+// statement returns the SQL of the task with this name.
+func (r runner) statement(name string) (string, error) {
+	item, err := r.pipeline.Tasks.Find(name)
+	if err != nil {
+		return "", err
+	}
+	return item.SQL(r.table())
+}
+
+// exec runs the statement and ends the progress line.
+func (r runner) exec(statement string) error {
 	if err := r.execute.Execute(statement, true); err != nil {
 		return err
 	}

@@ -75,6 +75,8 @@ The schedule uses the local time zone; add a prefix such as
 it connects to ClickHouse.
 
 - The first run is at the first scheduled time, not when dacfy starts.
+- Each run prints only its progress line. With `--sql`, the statement is
+  printed once, before the schedule starts.
 - If a run is still going at the next scheduled time, that time is skipped, so
   runs never overlap.
 - If a run fails, dacfy prints `--> Task <name> failed: <error>` and keeps the
