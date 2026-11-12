@@ -3,8 +3,13 @@ package pipelines
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	stdstrings "strings"
 )
+
+// taskName is a task name. It is only used on the command line, so it also
+// accepts hyphens.
+var taskName = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_-]{1,254}$`)
 
 // Task is a named query that the task command runs on demand.
 type Task struct {
@@ -13,8 +18,8 @@ type Task struct {
 }
 
 func (t Task) Validate() error {
-	if t.Name.IsNotValid() {
-		return fmt.Errorf("task.name %q is invalid; must start with a letter and contain only letters, digits or underscores (max 255 characters)", t.Name.ToString())
+	if !taskName.MatchString(t.Name.ToString()) {
+		return fmt.Errorf("task.name %q is invalid; must start with a letter and contain only letters, digits, underscores or hyphens (max 255 characters)", t.Name.ToString())
 	}
 	if t.Query.IsEmpty() {
 		return fmt.Errorf("task.query is required for task %q", t.Name.ToString())

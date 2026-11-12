@@ -46,9 +46,10 @@ func TestTasksFind(t *testing.T) {
 		message string
 	}{
 		{"found", pipelines.Tasks{valid}, "sync", ""},
+		{"hyphen in name", pipelines.Tasks{{Name: "mongodb-sync", Query: "SELECT 1"}}, "mongodb-sync", ""},
 		{"no tasks", nil, "sync", "no tasks defined"},
-		{"missing name", pipelines.Tasks{{Query: "SELECT 1"}}, "sync", `task.name "" is invalid; must start with a letter and contain only letters, digits or underscores (max 255 characters)`},
-		{"invalid name", pipelines.Tasks{{Name: "1sync", Query: "SELECT 1"}}, "1sync", `task.name "1sync" is invalid; must start with a letter and contain only letters, digits or underscores (max 255 characters)`},
+		{"missing name", pipelines.Tasks{{Query: "SELECT 1"}}, "sync", `task.name "" is invalid; must start with a letter and contain only letters, digits, underscores or hyphens (max 255 characters)`},
+		{"invalid name", pipelines.Tasks{{Name: "1sync", Query: "SELECT 1"}}, "1sync", `task.name "1sync" is invalid; must start with a letter and contain only letters, digits, underscores or hyphens (max 255 characters)`},
 		{"missing query", pipelines.Tasks{{Name: "sync"}}, "sync", `task.query is required for task "sync"`},
 		{"repeated name", pipelines.Tasks{valid, valid}, "sync", `task.name "sync" is repeated`},
 		{"unknown task", pipelines.Tasks{valid}, "optimize", `task "optimize" not found`},
@@ -58,7 +59,7 @@ func TestTasksFind(t *testing.T) {
 			item, err := tc.tasks.Find(tc.find)
 			if tc.message == "" {
 				require.NoError(t, err)
-				assert.Equal(t, valid, item)
+				assert.Equal(t, tc.find, item.Name.ToString())
 				return
 			}
 			assert.EqualError(t, err, tc.message)

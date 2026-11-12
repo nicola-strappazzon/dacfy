@@ -19,7 +19,7 @@ tasks:
 
 | Field | Required | Description |
 |---|---|---|
-| `name` | Yes | Task name. Must be unique in the manifest. |
+| `name` | Yes | Task name. Must be unique in the manifest. It starts with a letter and contains letters, digits, `_` or `-`. |
 | `query` | Yes | One SQL statement. A final `;` is removed. |
 
 `{table}` is optional. dacfy replaces it with `<database>.<table>` from the
