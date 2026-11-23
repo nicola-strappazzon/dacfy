@@ -10,6 +10,7 @@ import (
 
 	"github.com/nicola-strappazzon/dacfy/clickhouse"
 	"github.com/nicola-strappazzon/dacfy/pipelines"
+	"github.com/nicola-strappazzon/dacfy/progress"
 
 	"github.com/robfig/cron/v3"
 	"github.com/spf13/cobra"
@@ -38,6 +39,7 @@ func NewCommand() *cobra.Command {
 			if spec == "" || pl.Config.DryRun {
 				return r.Run(args[0])
 			}
+			ch.SetLogger(progress.NewLogHandler(r.out))
 			ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 			defer stop()
 			// After the first signal, the default handling comes back, so a

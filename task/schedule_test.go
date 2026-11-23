@@ -68,8 +68,12 @@ func TestScheduleKeepsRunningAfterAFailedRun(t *testing.T) {
 	cancel()
 
 	require.NoError(t, <-done)
-	assert.Contains(t, out.String(), "--> Task sync scheduled with cron \"@every 1s\", press Ctrl+C to stop.\n")
-	assert.Contains(t, out.String(), "--> Task sync failed: table is read only\n")
+	assert.Contains(t, out.String(), " Task sync scheduled with cron \"@every 1s\", press Ctrl+C to stop.\n")
+	assert.Contains(t, out.String(), " Task sync failed: table is read only\n")
+	for _, line := range bytes.Split(bytes.TrimSpace([]byte(out.String())), []byte("\n")) {
+		_, err := time.Parse(time.RFC3339, string(bytes.Fields(line)[0]))
+		require.NoError(t, err)
+	}
 	assert.NotContains(t, out.String(), "--> Running task")
 }
 

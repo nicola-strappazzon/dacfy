@@ -75,13 +75,25 @@ The schedule uses the local time zone; add a prefix such as
 it connects to ClickHouse.
 
 - The first run is at the first scheduled time, not when dacfy starts.
-- Each run prints only its progress line. With `--sql`, the statement is
-  printed once, before the schedule starts.
+- Each successful run prints one log line when it finishes, with an RFC 3339
+  timestamp in the local time zone, rows, bytes, CPU, RAM and elapsed time.
+  Metrics start from zero for each run. Cron output has no percentage or
+  terminal line updates. Without `--cron`, the interactive progress stays the
+  same. With `--sql`, the statement is printed once, before the schedule starts.
 - If a run is still going at the next scheduled time, that time is skipped, so
   runs never overlap.
-- If a run fails, dacfy prints `--> Task <name> failed: <error>` and keeps the
-  schedule.
+- If a run fails, dacfy prints `<timestamp> Task <name> failed: <error>` and
+  keeps the schedule.
 - On Ctrl+C or SIGTERM, dacfy stops the schedule and waits for a running task
   to finish. Press Ctrl+C again to exit at once.
 - With `--dry-run`, dacfy checks the expression, prints the statement once, and
   exits.
+
+Example of a completed run:
+
+```text
+2026-11-24T12:00:01+01:00 46843515 Rows, 190 MiB, 5.10 CPU, 13.06 MiB RAM, Elapsed 00:00:01
+```
+
+The timestamp uses the process's local time zone, even when `CRON_TZ` sets a
+different time zone for the schedule.
