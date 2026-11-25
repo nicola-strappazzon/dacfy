@@ -1,8 +1,10 @@
 # Table indexes
 
-Declare data skipping indexes in `table.indexes`. `dacfy create` adds them
-right after it creates the table, before the view and before any backfill, so
-the indexes are built while the table is filled.
+Declare data skipping indexes in `table.indexes`. `dacfy create` includes them
+in `CREATE TABLE`, before the view and before any backfill, so the indexes are
+built while the table is filled. A new table starts with its complete index
+definitions, without separate `ALTER TABLE ... ADD INDEX` queries that can
+wait for replicas on a cluster.
 
 ```yaml
 database:
@@ -27,16 +29,21 @@ table:
 | `type` | Yes | Index type, for example `minmax`, `set(100)`, `bloom_filter(0.01)` or `text(tokenizer = ngrams(3))`. Quote it when it contains `:` or `#`. |
 | `granularity` | No | Number of granules per index block. Without it, the server default is used. |
 
-Each index becomes one statement, in manifest order:
+Index definitions appear inside `CREATE TABLE`, in manifest order:
 
 ```sql
-ALTER TABLE malware_search.ds_mv_malware_search_file ADD INDEX IF NOT EXISTS idx_search_file search_file TYPE text(tokenizer = ngrams(3)) GRANULARITY 1;
-ALTER TABLE malware_search.ds_mv_malware_search_file ADD INDEX IF NOT EXISTS idx_sha256_bf sha256 TYPE bloom_filter(0.01) GRANULARITY 1;
+CREATE TABLE IF NOT EXISTS malware_search.ds_mv_malware_search_file (
+    updated_at DateTime,
+    sha256 String,
+    search_file String,
+    INDEX idx_search_file search_file TYPE text(tokenizer = ngrams(3)) GRANULARITY 1,
+    INDEX idx_sha256_bf sha256 TYPE bloom_filter(0.01) GRANULARITY 1
+) ENGINE=ReplicatedMergeTree ORDER BY (updated_at, sha256);
 ```
 
-- `--suffix` applies to the table name, `--sql` prints the statements, and
-  `--dry-run` prints them without running them.
-- The statements have no `ON CLUSTER`, like `CREATE TABLE`.
+- `--suffix` applies to the table name, `--sql` prints the statement, and
+  `--dry-run` prints it without running it.
+- The statement has no `ON CLUSTER`, like other `CREATE TABLE` statements.
 - When the table already exists, `dacfy create` skips it and its indexes.
 - dacfy does not run `MATERIALIZE INDEX` and does not drop or change indexes
   on an existing table. To add an index to a table that already has data, run

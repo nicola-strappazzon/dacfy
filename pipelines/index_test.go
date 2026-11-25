@@ -9,19 +9,25 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestIndexSQLFromYAML(t *testing.T) {
+func TestCreateTableIndexesFromYAML(t *testing.T) {
 	var table pipelines.Table
 	require.NoError(t, yaml.Unmarshal([]byte(`name: events
+engine: ReplicatedMergeTree
+columns:
+  - { name: sha256, type: String }
+  - { name: search_file, type: "Array(String)" }
+order_by: [sha256]
 indexes:
-  - { name: idx_search_file, expression: search_file, type: "text(tokenizer = ngrams(3))", granularity: 1 }
+  - { name: idx_search_file, expression: "arrayMap(x -> lower(x), search_file)", type: "text(tokenizer = ngrams(3))", granularity: 1 }
   - { name: idx_sha256_bf, expression: sha256, type: bloom_filter(0.01) }
 `), &table))
 	table.Parent = &pipelines.Pipelines{Database: pipelines.Database{Name: "analytics"}}
 
-	assert.Equal(t, []string{
-		"ALTER TABLE analytics.events_v2 ADD INDEX IF NOT EXISTS idx_search_file search_file TYPE text(tokenizer = ngrams(3)) GRANULARITY 1",
-		"ALTER TABLE analytics.events_v2 ADD INDEX IF NOT EXISTS idx_sha256_bf sha256 TYPE bloom_filter(0.01)",
-	}, table.SetSuffix("_v2").AddIndexes())
+	assert.Equal(t, "CREATE TABLE IF NOT EXISTS analytics.events_v2 (sha256 String,search_file Array(String), INDEX idx_search_file arrayMap(x -> lower(x), search_file) TYPE text(tokenizer = ngrams(3)) GRANULARITY 1, INDEX idx_sha256_bf sha256 TYPE bloom_filter(0.01)) ENGINE=ReplicatedMergeTree ORDER BY (sha256) ", table.SetSuffix("_v2").Create().SQL())
+	assert.Equal(t, "events", table.Name.ToString())
+
+	table.Indexes = nil
+	assert.Equal(t, "CREATE TABLE IF NOT EXISTS analytics.events (sha256 String,search_file Array(String)) ENGINE=ReplicatedMergeTree ORDER BY (sha256) ", table.Create().SQL())
 }
 
 func TestIndexValidate(t *testing.T) {

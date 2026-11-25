@@ -449,10 +449,12 @@ view:
 
 	assert.NoError(t, err)
 	table := strings.Index(out, "CREATE TABLE IF NOT EXISTS malware_search.ds_search_file_v2 ")
-	first := strings.Index(out, "ALTER TABLE malware_search.ds_search_file_v2 ADD INDEX IF NOT EXISTS idx_search_file search_file TYPE text(tokenizer = ngrams(3)) GRANULARITY 1;")
-	second := strings.Index(out, "ALTER TABLE malware_search.ds_search_file_v2 ADD INDEX IF NOT EXISTS idx_sha256_bf sha256 TYPE bloom_filter(0.01) GRANULARITY 1;")
+	first := strings.Index(out, ", INDEX idx_search_file search_file TYPE text(tokenizer = ngrams(3)) GRANULARITY 1")
+	second := strings.Index(out, ", INDEX idx_sha256_bf sha256 TYPE bloom_filter(0.01) GRANULARITY 1) ENGINE=MergeTree")
 	view := strings.Index(out, "CREATE MATERIALIZED VIEW")
-	assert.True(t, table >= 0 && first > table && second > first && view > second, "indexes must follow the table and precede the view:\n%s", out)
+	assert.True(t, table >= 0 && first > table && second > first && view > second, "indexes must be inside CREATE TABLE in manifest order, before the view:\n%s", out)
+	assert.NotContains(t, out, "ALTER TABLE")
+	assert.NotContains(t, out, "Add index:")
 }
 
 func TestCommand_TableIndexesRejectInvalid(t *testing.T) {
