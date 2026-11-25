@@ -95,6 +95,10 @@ func (t Table) Create() Table {
 	t.Statement.WriteString(t.Name.ToString())
 	t.Statement.WriteString(" (")
 	t.Statement.WriteString(t.Columns.JoinWithTypes())
+	for _, index := range t.Indexes {
+		t.Statement.WriteString(", ")
+		t.Statement.WriteString(index.SQL())
+	}
 	t.Statement.WriteString(") ")
 
 	if t.Engine.IsMongoDB() {
@@ -139,16 +143,6 @@ func (t Table) Create() Table {
 	}
 
 	return t
-}
-
-// AddIndexes returns one statement per index, in manifest order.
-func (t Table) AddIndexes() []string {
-	table := t.Parent.Database.Name.ToString() + "." + t.Name.ToString()
-	statements := make([]string, len(t.Indexes))
-	for i, index := range t.Indexes {
-		statements[i] = index.SQL(table)
-	}
-	return statements
 }
 
 func (t Table) Drop() Table {

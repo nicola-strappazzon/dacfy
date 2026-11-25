@@ -6,8 +6,7 @@ import (
 	"github.com/nicola-strappazzon/dacfy/strings"
 )
 
-// Index is a data skipping index that dacfy adds to a table after it creates
-// the table.
+// Index is a data skipping index declared when dacfy creates a table.
 type Index struct {
 	Expression  string `yaml:"expression"`
 	Granularity uint   `yaml:"granularity"`
@@ -28,10 +27,9 @@ func (i Index) Validate() error {
 	return nil
 }
 
-// SQL returns the statement that adds the index to the table, written as
-// database.table.
-func (i Index) SQL(table string) string {
-	statement := fmt.Sprintf("ALTER TABLE %s ADD INDEX IF NOT EXISTS %s %s TYPE %s", table, i.Name, strings.TrimSpace(i.Expression), strings.TrimSpace(i.Type))
+// SQL returns the index definition inside CREATE TABLE.
+func (i Index) SQL() string {
+	statement := fmt.Sprintf("INDEX %s %s TYPE %s", i.Name, strings.TrimSpace(i.Expression), strings.TrimSpace(i.Type))
 	if i.Granularity > 0 {
 		statement += fmt.Sprintf(" GRANULARITY %d", i.Granularity)
 	}

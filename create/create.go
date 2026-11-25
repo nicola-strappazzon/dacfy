@@ -148,21 +148,6 @@ func run(cmd *cobra.Command, created map[string]bool) (err error) {
 		},
 	}
 
-	// Indexes are added right after their table, before the view and any
-	// backfill fill it, so existing parts never need MATERIALIZE INDEX.
-	tableExists := !pl.Config.DryRun && ch.TableExists(pl.Database.Name.ToString(), pl.Table.SetSuffix(pl.Config.Suffix).Name.ToString())
-	for i, statement := range pl.Table.SetSuffix(pl.Config.Suffix).AddIndexes() {
-		queries = append(queries, struct {
-			Message   string
-			Statement string
-			Continue  bool
-		}{
-			Continue:  tableExists,
-			Statement: statement,
-			Message:   fmt.Sprintf("Add index: %s", pl.Table.Indexes[i].Name.ToString()),
-		})
-	}
-
 	queries = append(queries, []struct {
 		Message   string
 		Statement string

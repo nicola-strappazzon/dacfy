@@ -35,7 +35,7 @@ and backfill steps in order from one file.
 ## Table indexes
 
 See the [table indexes documentation](docs/indexes.md) to create data skipping
-indexes together with a table.
+indexes inside `CREATE TABLE`, together with the columns.
 
 ## Tasks
 
