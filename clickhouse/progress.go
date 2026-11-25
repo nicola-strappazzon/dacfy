@@ -36,7 +36,7 @@ type Progress struct {
 var loggerProgress LoggerProgress = nil
 
 func (p *Progress) StartNow() {
-	p.Start = time.Now()
+	*p = Progress{Start: time.Now()}
 }
 
 func (p *Progress) SetReadRows(in uint64) {

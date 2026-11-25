@@ -55,3 +55,45 @@ Only the named task runs. A name that is not in the manifest fails with
 `task "<name>" not found`. The query runs as a statement, so result rows are
 not printed. `--sql` prints the statement and `--dry-run` prints it without
 running it.
+
+## Run a task on a schedule
+
+Add `--cron` to keep dacfy running and run the task at each scheduled time,
+until you press Ctrl+C or the process gets SIGTERM:
+
+```bash
+dacfy task mongodb-sync foo.yaml --cron "*/5 0 * * *"
+```
+
+The value uses the standard cron syntax with five fields: minute, hour, day of
+month, month and day of week. For example, `*/5 * * * *` runs every five
+minutes, and `*/5 0 * * *` runs every five minutes between 00:00 and 00:55.
+Descriptors such as `@hourly`, `@daily` and `@every 30s` are also accepted.
+The schedule uses the local time zone; add a prefix such as
+`CRON_TZ=UTC */5 * * * *` to use another one. dacfy reads the expression with
+[robfig/cron](https://github.com/robfig/cron) and rejects an invalid one before
+it connects to ClickHouse.
+
+- The first run is at the first scheduled time, not when dacfy starts.
+- Each successful run prints one log line when it finishes, with an RFC 3339
+  timestamp in the local time zone, rows, bytes, CPU, RAM and elapsed time.
+  Metrics start from zero for each run. Cron output has no percentage or
+  terminal line updates. Without `--cron`, the interactive progress stays the
+  same. With `--sql`, the statement is printed once, before the schedule starts.
+- If a run is still going at the next scheduled time, that time is skipped, so
+  runs never overlap.
+- If a run fails, dacfy prints `<timestamp> Task <name> failed: <error>` and
+  keeps the schedule.
+- On Ctrl+C or SIGTERM, dacfy stops the schedule and waits for a running task
+  to finish. Press Ctrl+C again to exit at once.
+- With `--dry-run`, dacfy checks the expression, prints the statement once, and
+  exits.
+
+Example of a completed run:
+
+```text
+2026-11-24T12:00:01+01:00 46843515 Rows, 190 MiB, 5.10 CPU, 13.06 MiB RAM, Elapsed 00:00:01
+```
+
+The timestamp uses the process's local time zone, even when `CRON_TZ` sets a
+different time zone for the schedule.

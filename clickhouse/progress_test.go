@@ -18,6 +18,22 @@ func TestStartNowSetsStart(t *testing.T) {
 	assert.True(t, p.Start.After(before))
 }
 
+func TestStartNowResetsPreviousQuery(t *testing.T) {
+	p := clickhouse.Progress{
+		Start: time.Now().Add(-time.Hour), ReadRows: 100, ReadBytes: 1024,
+		TotalRows: 200, Memory: 64, PeakMemory: 128, CPU: 5.5,
+	}
+	p.Text.WriteString("previous query")
+	p.StartNow()
+
+	assert.WithinDuration(t, time.Now(), p.Start, time.Second)
+	assert.Equal(t, clickhouse.Progress{Start: p.Start}, p)
+	p.SetReadRows(10)
+	p.SetReadBytes(20)
+	assert.EqualValues(t, 10, p.ReadRows)
+	assert.EqualValues(t, 20, p.ReadBytes)
+}
+
 func TestSetReadRowsAndBytes(t *testing.T) {
 	var p clickhouse.Progress
 	p.SetReadRows(10)

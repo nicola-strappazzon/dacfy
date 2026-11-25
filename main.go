@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/nicola-strappazzon/dacfy/backfill"
 	"github.com/nicola-strappazzon/dacfy/clickhouse"
@@ -56,6 +57,12 @@ Find more information at: https://github.com/nicola-strappazzon/dacfy`,
 			}
 			if pl.Config.DryRun {
 				return nil
+			}
+			if cmd.Name() == "task" {
+				if spec, _ := cmd.Flags().GetString("cron"); spec != "" {
+					fmt.Fprintf(cmd.OutOrStdout(), "%s Executed successfully.\n", time.Now().Format(time.RFC3339))
+					return nil
+				}
 			}
 			fmt.Fprintln(cmd.OutOrStdout(), "--> Executed successfully.")
 			return nil

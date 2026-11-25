@@ -110,7 +110,7 @@ func (ch *ClickHouse) ExecuteWitchLogger(in string) error {
 			ch.Progress.SetReadBytes(p.Bytes)
 			ch.Progress.SetTotalRows(p.TotalRows)
 
-			go ch.WriteProcess()
+			ch.WriteProcess()
 		}),
 	)
 
